@@ -18,7 +18,7 @@ uv sync
 Run the app:
 
 ```bash
-uv run uvicorn main:app --reload
+uv run uvicorn app:app --reload
 ```
 
 ## Model and data
