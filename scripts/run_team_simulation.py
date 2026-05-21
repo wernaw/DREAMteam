@@ -2,7 +2,6 @@ import json
 import sys
 import time
 from pathlib import Path
-from api.services.team_performance_simulator import form_and_rank_teams
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -12,9 +11,11 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 def main():
+    from api.services.team_recommendation_service import form_and_rank_teams
+
     start_time = time.perf_counter()
 
-    top_teams = form_and_rank_teams(benchmark_limit=2)
+    top_teams = form_and_rank_teams(benchmark_limit=11, llm_team_limit=10)
 
     end_time = time.perf_counter()
     execution_time = end_time - start_time
