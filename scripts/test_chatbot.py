@@ -1,4 +1,4 @@
-from api.models.chatbot import candidate_chatbot
+from api.services.chatbot import candidate_chatbot
 import json
 
 
