@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+
+    <link rel="stylesheet" href="/api/static/style_chat.css">
+</head>
+
+
+<body>
+
+    <h1>Welcome</h1>
+
+    <div id="chat"></div>
+
+    <div class="bottom-bar">
+        <div class="input-area">
+            <input id="message" placeholder="Type a message..." />
+            <button onclick="send()">Send</button>
+        </div>
+    </div>
+
+    <script>
+
+    let history = [];
+
+    async function send() {
+
+        const input = document.getElementById("message");
+        const msg = input.value.trim();
+
+        if (!msg) return;
+
+        input.value = "";
+
+        const chat = document.getElementById("chat");
+
+        chat.innerHTML += `
+            <div class="message user">
+                <b>You</b>
+                ${msg}
+            </div>
+        `;
+
+        chat.scrollTop = chat.scrollHeight;
+
+        const res = await fetch("http://127.0.0.1:8000/api/chat.html", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                history: history,
+                message: msg
+            })
+        });
+
+        const data = await res.json();
+        const reply = data.question ?? "ERROR: empty response";
+
+        chat.innerHTML += `
+            <div class="message ai">
+                <b>AI</b>
+                ${reply}
+            </div>
+        `;
+
+        chat.scrollTop = chat.scrollHeight;
+
+        history.push({
+            role: "Candidate",
+            content: msg
+        });
+
+        history.push({
+            role: "Recruiter",
+            content: reply
+        });
+
+    }
+
+    </script>
+
+</body>
+</html>

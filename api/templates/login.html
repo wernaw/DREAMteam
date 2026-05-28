@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link rel="stylesheet" href="/api/static/style_login.css">
+</head>
+
+<body>
+
+    <h2>Login</h2>
+
+    <form action="/" method="post">
+
+    <label>Login:</label>
+    <input type="login" name="login" required>
+
+    <br><br>
+
+    <label>Password:</label>
+    <input type="password" name="password" required>
+
+    <br><br>
+
+    <label>Select Role:</label>
+
+    <select name="role">
+        <option value="candidate">Candidate</option>
+        <option value="recruiter">Recruiter</option>
+    </select>
+
+    <script>
+    
+        function zaloguj() {
+        const login = document.getElementById("username").value;
+        const haslo = document.getElementById("haslo").value;
+
+        const candidateLogin = "candidate@mail.pl";
+        const candidateHaslo = "candidate123";
+
+        const recruiterLogin = "recruiter@mail.pl";
+        const recruiterHaslo = "recruiter123";
+
+        if (login === candidateLogin && haslo === candidateHaslo) {
+            window.location.href = "chat.html";
+        if (login === recruiterLogin && haslo === recruiterHaslo) {
+            window.location.href = "dashboard.html";
+        } else {
+            alert("Błędny login lub hasło");
+        }
+        }
+        }
+
+    </script>
+
+    <br><br>
+
+    <button type="submit">
+        Login
+    </button>
+
+</form>
+
+</body>
+</html>

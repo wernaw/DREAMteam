@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reports</title>
+
+    <link rel="stylesheet" href="/api/static/style_reports.css">
+</head>
+
+
+<body>
+
+<h1>Reports</h1>
+
+<table border="1" cellpadding="10">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Candidate</th>
+            <th>Role</th>
+            <th>Openness</th>
+            <th>Conscientiousness</th>
+            <th>Extraversion</th>
+            <th>Agreeableness</th>
+            <th>Neuroticism</th>
+            <th>Answers</th>
+        </tr>
+    </thead>
+
+    <tbody id="reports"></tbody>
+</table>
+
+<br>
+
+<a href="/recruiter/dashboard.html">Back to dashboard</a>
+
+    <script>
+    async function loadReports() {
+        try {
+            const res = await fetch("/api/results");
+
+            if (!res.ok) {
+                throw new Error("HTTP error " + res.status);
+            }
+
+            const data = await res.json();
+
+            const html = data.map(c => `
+                <tr>
+                    <td>${c.id ?? ""}</td>
+                    <td>${c.name ?? ""}</td>
+                    <td>${c.role ?? ""}</td>
+
+                    <td>${formatNumber(c.personality?.openness)}</td>
+                    <td>${formatNumber(c.personality?.conscientiousness)}</td>
+                    <td>${formatNumber(c.personality?.extraversion)}</td>
+                    <td>${formatNumber(c.personality?.agreeableness)}</td>
+                    <td>${formatNumber(c.personality?.neuroticism)}</td>
+
+                    <td>
+                        <details>
+                            <summary>Show answers</summary>
+                            <div style="padding:10px;">
+                                ${(c.history ?? []).map(h => `
+                                    <div>
+                                        <b>${h.role ?? "unknown"}:</b> ${h.content ?? ""}
+                                    </div>
+                                `).join("")}
+                            </div>
+                        </details>
+                    </td>
+                </tr>
+            `).join("");
+
+            document.getElementById("reports").innerHTML = html;
+
+        } catch (err) {
+            console.error("Failed to load reports:", err);
+            document.getElementById("reports").innerHTML =
+                `<tr><td colspan="9">Failed to load data</td></tr>`;
+        }
+    }
+
+    function formatNumber(value) {
+        const num = Number(value);
+        return isNaN(num) ? "0.00" : num.toFixed(2);
+    }
+
+    loadReports();
+    </script>
+
+</body>
+</html>
