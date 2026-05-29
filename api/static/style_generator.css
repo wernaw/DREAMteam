@@ -1,93 +1,97 @@
 body {
     margin: 0;
-    padding: 0;
-    background: #0f172a;
-    font-family: Arial, sans-serif;
+    font-family: Inter, Arial, sans-serif;
+    background: radial-gradient(circle at top, #2a2f55, #0f1220);
     color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
+    text-align: center;
+    height: 100vh;
 }
 
-
-h1 {
-    margin-top: 40px;
-    font-size: 32px;
-    color: #e2e8f0;
+.team-container {
+    width: 1100px;
+    margin: 40px auto;
 }
 
-
-textarea {
-    width: 90%;
-    max-width: 700px;
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
     margin-top: 20px;
-    padding: 16px;
-    background: #1e293b;
-    color: white;
-    border: none;
-    border-radius: 15px;
-    outline: none;
-    font-size: 15px;
-    line-height: 1.5;
-    resize: vertical;
-    box-shadow: 0 0 20px rgba(0,0,0,0.25);
-    transition: 0.2s;
 }
 
-textarea:focus {
-    outline: 2px solid #3b82f6;
+.card {
+    position: relative;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 18px;
+    min-height: 180px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
 }
 
+.card.active {
+    background: rgba(108, 92, 255, 0.18);
+    border: 1px solid rgba(108, 92, 255, 0.35);
+}
+
+.card.small {
+    opacity: 0.85;
+}
+
+.percent {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #b8a8ff;
+}
+
+.dots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.dot {
+    width: 26px;
+    height: 26px;
+    background: #6c5cff;
+    border-radius: 50%;
+}
 
 button {
-    margin-top: 20px;
-    padding: 12px 26px;
-    border: none;
-    border-radius: 12px;
-    background: #3b82f6;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
     cursor: pointer;
-    transition: 0.2s;
-}
-
-button:hover {
-    background: #2563eb;
-    transform: scale(1.03);
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-
-hr {
-    width: 90%;
-    max-width: 700px;
-    margin: 30px 0;
+    border-radius: 12px;
+    padding: 12px 16px;
     border: none;
-    border-top: 1px solid #334155;
 }
 
-
-#result {
-    width: 90%;
-    max-width: 700px;
-    background: #1e293b;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    min-height: 80px;
+.btn-primary {
+    background: #6c5cff;
+    color: white;
 }
 
-#result h3 {
-    margin-top: 0;
-    color: #e2e8f0;
+.btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
 }
 
-#result p {
-    color: #cbd5e1;
-    line-height: 1.6;
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+@media (max-width: 900px) {
+    .team-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .team-container {
+        width: 95%;
+    }
 }

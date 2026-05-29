@@ -1,67 +1,67 @@
 <!DOCTYPE html>
 <html lang="pl">
-
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
 
-    <link rel="stylesheet" href="/api/static/style_login.css">
+    <link rel="stylesheet" href="/static/style_login.css">
 </head>
 
 <body>
 
-    <h2>Login</h2>
+<div class="login-wrapper">
 
-    <form action="/" method="post">
+    <div class="login-card">
 
-    <label>Login:</label>
-    <input type="login" name="login" required>
+        <h1>Welcome to DREAMteam</h1>
+        <p class="subtitle">Sign in to continue</p>
 
-    <br><br>
+        <label>Login</label>
+        <input id="login" type="text" placeholder="email@example.com">
 
-    <label>Password:</label>
-    <input type="password" name="password" required>
+        <label>Password</label>
+        <input id="password" type="password" placeholder="••••••••">
 
-    <br><br>
+        <label>Role</label>
+        <select id="role">
+            <option value="candidate">Candidate</option>
+            <option value="recruiter">Recruiter</option>
+        </select>
 
-    <label>Select Role:</label>
+        <button class="btn-primary" onclick="zaloguj()">
+            Login
+        </button>
 
-    <select name="role">
-        <option value="candidate">Candidate</option>
-        <option value="recruiter">Recruiter</option>
-    </select>
+    </div>
 
-    <script>
-    
-        function zaloguj() {
-        const login = document.getElementById("username").value;
-        const haslo = document.getElementById("haslo").value;
+</div>
 
-        const candidateLogin = "candidate@mail.pl";
-        const candidateHaslo = "candidate123";
+<script>
+function zaloguj() {
 
-        const recruiterLogin = "recruiter@mail.pl";
-        const recruiterHaslo = "recruiter123";
+    const login = document.getElementById("login").value;
+    const password = document.getElementById("password").value;
+    const role = document.getElementById("role").value;
 
-        if (login === candidateLogin && haslo === candidateHaslo) {
-            window.location.href = "chat.html";
-        if (login === recruiterLogin && haslo === recruiterHaslo) {
-            window.location.href = "dashboard.html";
-        } else {
-            alert("Błędny login lub hasło");
-        }
-        }
-        }
+    const candidateLogin = "candidate@mail.pl";
+    const candidatePass = "xxx";
 
-    </script>
+    const recruiterLogin = "recruiter@mail.pl";
+    const recruiterPass = "xxx";
 
-    <br><br>
+    if (login === candidateLogin && password === candidatePass && role === "candidate") {
+        window.location.href = "/candidate/chat.html";
+    }
 
-    <button type="submit">
-        Login
-    </button>
+    else if (login === recruiterLogin && password === recruiterPass && role === "recruiter") {
+        window.location.href = "/recruiter/dashboard.html";
+    }
 
-</form>
+    else {
+        alert("Błędny login lub hasło");
+    }
+}
+</script>
 
 </body>
 </html>

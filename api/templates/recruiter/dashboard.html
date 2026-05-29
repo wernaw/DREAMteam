@@ -3,20 +3,106 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Recruiter dashboard</title>
+    <title>Dashboard</title>
 
-    <link rel="stylesheet" href="/api/static/style_dashboard.css">
+    <link rel="stylesheet" href="/static/style_dashboard.css">
 </head>
 
 <body>
 
-    <h1>Dashboard</h1>
+<div class="bg"></div>
 
-    <ul>
-        <li><a href="/recruiter/generator.html">Team generator</a></li>
-        <li><a href="/recruiter/reports.html">Reports</a></li>
-        <li><a href="/candidate/chatbot.html">Candidate answers</a></li>
-    </ul>
+<div class="container">
+
+
+    <div class="header">
+        <h1>DREAMteam</h1>
+        <p>AI Recruitment Dashboard</p>
+    </div>
+
+    <div class="project-bar">
+
+        <input id="projectInput" placeholder="Dodaj nowy projekt...">
+
+        <button onclick="addProject()">
+            + Add
+        </button>
+
+    </div>
+
+    <div class="grid">
+
+        <div class="card">
+
+            <div class="card-title">
+                <h2>Candidates</h2>
+
+                <select>
+                    <option>Project Manager</option>
+                    <option>Product Owner</option>
+                    <option>Frontend Developer</option>
+                    <option>Backend Developer</option>
+                    <option>QA Engineer</option>
+                    <option>DevObs Engineer</option>
+                </select>
+            </div>
+
+            <div class="skeleton-list">
+                <div class="sk"></div>
+                <div class="sk"></div>
+                <div class="sk"></div>
+                <div class="sk"></div>
+                <div class="sk"></div>
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                <h2>Teams</h2>
+
+                <select>
+                    <option>Last</option>
+                    <option>Top 3</option>
+                </select>
+            </div>
+
+            <div class="team-area">
+
+                <div class="sk big"></div>
+
+                <div class="team-row">
+                    <div class="sk small"></div>
+                    <div class="sk small"></div>
+                </div>
+
+            </div>
+
+            <div class="buttons">
+
+                <button class="ghost" onclick="window.location.href='/recruiter/reports.html'">Reports</button>
+
+                <button class="primary" onclick="window.location.href='/recruiter/generator.html'">⭐ Generate team</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function addProject() {
+    const value = document.getElementById("projectInput").value;
+    if (!value) return;
+
+    alert("Dodano projekt: " + value);
+    document.getElementById("projectInput").value = "";
+}
+</script>
 
 </body>
 </html>

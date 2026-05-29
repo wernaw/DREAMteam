@@ -1,162 +1,164 @@
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request 
+from fastapi.responses import HTMLResponse 
+from fastapi.staticfiles import StaticFiles 
+from fastapi.templating import Jinja2Templates 
+from pydantic import BaseModel 
+from services.chatbot import candidate_chatbot
+from services.team_recommendation_service import format_top_teams
 
-from pathlib import Path
-import sqlite3
-import json
-from pydantic import BaseModel
+app = FastAPI() 
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-DATABASE_PATH = BASE_DIR / "dreamteam.db"
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.mount("/api/static", StaticFiles(directory="api/static"), name="static")
-
-templates = Jinja2Templates(directory="api/templates")
+templates = Jinja2Templates(directory="templates")
 
 
-class ChatRequest(BaseModel):
+
+class CandidateChatRequest(BaseModel):
     history: list
     message: str | None = None
 
-
-def process_candidate_chat(history: list, message: str | None):
-    # do podpięcia
-
-    return {
-        "reply": f"Message: {message}",
-        "history_length": len(history)
-    }
+class TeamGenerationRequest(BaseModel): 
+    project_name: str 
+    role: str 
+    team_size: int
 
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse(
+
+
+# logowanie
+@app.get("/", response_class=HTMLResponse) 
+async def home(request: Request): 
+    
+    return templates.TemplateResponse( 
         "login.html",
-        {"request": request}
+        {"request": request} 
     )
 
-@app.post("/")
-async def login(role: str = Form(...)):
-    if role == "candidate":
-        return RedirectResponse(
-            url="/candidate/chat.html",
-            status_code=303
-        )
-    elif role == "recruiter":
-        return RedirectResponse(
-            url="/recruiter/dashboard.html",
-            status_code=303
-        )
 
-    return RedirectResponse(url="/", status_code=303)
-
-
-@app.get("/candidate/chat.html", response_class=HTMLResponse)
-async def candidate_chat(request: Request):
-    return templates.TemplateResponse(
-        "candidate/chat.html",
-        {"request": request}
+# rozmowa z kandydatem
+@app.get("/candidate/chat.html", response_class=HTMLResponse) 
+async def candidate_chat_page(request: Request): 
+    
+    return templates.TemplateResponse( 
+        "/candidate/chat.html", 
+        {"request": request} 
     )
 
+
+
+@app.post("/api/chat.html")
+async def chat(req: CandidateChatRequest):
+
+    result = candidate_chatbot(
+        history=req.history,
+        candidate_answer=req.message
+    )
+
+    return result
+
+
+
+# panel rekrutera
 
 @app.get("/recruiter/dashboard.html", response_class=HTMLResponse)
 async def recruiter_dashboard(request: Request):
+
+    candidates = [
+        {
+            "name": "Anna",
+            "role": "Frontend Developer"
+        },
+        {
+            "name": "Jan",
+            "role": "Backend Developer"
+        }
+    ]
+
+    teams = [
+        {
+            "team_name": "Team Alpha",
+            "score": 92
+        }
+    ]
+
     return templates.TemplateResponse(
-        "recruiter/dashboard.html",
-        {"request": request}
+        "/recruiter/dashboard.html",
+        {
+            "request": request,
+            "candidates": candidates,
+            "teams": teams
+        }
     )
 
 
 @app.get("/recruiter/generator.html", response_class=HTMLResponse)
-async def recruiter_generator(request: Request):
+async def generator_page(request: Request):
+
     return templates.TemplateResponse(
-        "recruiter/generator.html",
+        "/recruiter/generator.html",
         {"request": request}
     )
 
 
-@app.get("/recruiter/reports.html", response_class=HTMLResponse)
-async def recruiter_reports(request: Request):
-    return templates.TemplateResponse(
-        "recruiter/reports.html",
-        {"request": request}
+@app.post("/recruiter/generator.html")
+async def generator(data: TeamGenerationRequest):
+
+    teams = format_top_teams(
+        project_name=data.project_name,
+        role=data.role
     )
 
+    return {"teams": teams}
 
-@app.post("/api/chat")
-def chat(req: ChatRequest):
-    result = process_candidate_chat(
-        history=req.history,
-        message=req.message
+
+@app.get( "/recruiter/reports.html", response_class=HTMLResponse ) 
+async def recruiter_reports(request: Request): 
+    
+    reports = [ 
+        { 
+            "team": "Team Alpha", 
+            "compatibility": 92, 
+            "summary": ( 
+                "Very good communication " "and cooperation." 
+            ) 
+        }, 
+        { 
+            "team": "Team Beta", 
+            "compatibility": 85, 
+            "summary": (
+                 "Strong technical skills." 
+                 ) 
+        } 
+    ] 
+    
+    return templates.TemplateResponse( 
+        "/recruiter/reports.html", 
+        {"request": request, "reports": reports} 
     )
 
-    return JSONResponse(content=result)
+@app.get("/recruiter/reports.html")
+async def reports_api():
 
+    reports = [
+        {
+            "team": "Team Alpha",
+            "score": 92
+        },
+        {
+            "team": "Team Beta",
+            "score": 85
+        }
+    ]
 
-@app.get("/api/results")
-def get_results():
-    conn = sqlite3.connect(DATABASE_PATH)
-    cursor = conn.cursor()
+    return {
+        "reports": reports
+    }
 
-    cursor.execute("""
-        SELECT
-            id,
-            first_name,
-            surname,
-            role,
-            openness,
-            conscientiousness,
-            extraversion,
-            agreeableness,
-            neuroticism,
-            conversation_history
-        FROM candidate_personality_scores
-        ORDER BY id DESC
-    """)
-
-    rows = cursor.fetchall()
-    conn.close()
-
-    results = []
-
-    for row in rows:
-        results.append({
-            "id": row[0],
-            "name": f"{row[1]} {row[2]}",
-            "role": row[3],
-            "personality": {
-                "openness": row[4],
-                "conscientiousness": row[5],
-                "extraversion": row[6],
-                "agreeableness": row[7],
-                "neuroticism": row[8],
-            },
-            "history": json.loads(row[9]) if row[9] else []
-        })
-
-    return JSONResponse(content=results)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
 
 
 if __name__ == "__main__":
+    
     import uvicorn
 
     uvicorn.run(
