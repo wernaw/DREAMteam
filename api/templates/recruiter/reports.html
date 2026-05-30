@@ -14,29 +14,141 @@
 
     <h1>Reports</h1>
 
+    <h2>Team Personality Distribution</h2>
+
+    <!-- TEAM SUMMARY -->
+    <table>
+        <tbody id="teamSummary"></tbody>
+    </table>
+
+    <!-- MAIN TABLE -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Candidate</th>
+                <th>Role</th>
+                <th>Openness</th>
+                <th>Conscientiousness</th>
+                <th>Extraversion</th>
+                <th>Agreeableness</th>
+                <th>Neuroticism</th>
+                <th>Answers</th>
+            </tr>
+        </thead>
+        <tbody id="reports"></tbody>
+    </table>
+
+    <!-- PANEL -->
     <div class="panel">
 
-        <select>
-            <option>Team 1</option>
+        <select id="teamSelect">
+            <option value="0">⭐ Best Match</option>
+            <option value="1">Second Team</option>
+            <option value="2">Third Team</option>
         </select>
 
-        <div class="table-header">
-            <div>Candidate</div>
-            <div>Role</div>
-            <div>Answers</div>
+        <div class="row">
+            <div>
+                <div class="name">Anna Kowalska</div>
+                <div class="role">Project Manager</div>
+            </div>
+
+            <div class="row-role">Project Manager</div>
+
+            <div class="row-answers">
+                <details>
+                    <summary>Show answers</summary>
+                    <div class="answers-box">...</div>
+                </details>
+            </div>
         </div>
 
-        <div id="reports"></div>
+        <div class="row">
+            <div>
+                <div class="name">Julita Wiśniewska</div>
+                <div class="role">Product Owner</div>
+            </div>
 
-        <div class="actions">
-            <button onclick="window.location.href='/recruiter/generator.html'">⭐ New team</button>
+            <div class="row-role">Product Owner</div>
+
+            <div class="row-answers">
+                <details>
+                    <summary>Show answers</summary>
+                    <div class="answers-box">...</div>
+                </details>
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <div class="name">Karolina Wójcik</div>
+                <div class="role">Backend Developer</div>
+            </div>
+
+            <div class="row-role">Backend Developer</div>
+
+            <div class="row-answers">
+                <details>
+                    <summary>Show answers</summary>
+                    <div class="answers-box">...</div>
+                </details>
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <div class="name">Natalia Lewandowska</div>
+                <div class="role">Frontend Developer</div>
+            </div>
+
+            <div class="row-role">Frontend Developer</div>
+
+            <div class="row-answers">
+                <details>
+                    <summary>Show answers</summary>
+                    <div class="answers-box">...</div>
+                </details>
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <div class="name">Michał Mazur</div>
+                <div class="role">QA Engineer</div>
+            </div>
+
+            <div class="row-role">QA Engineer</div>
+
+            <div class="row-answers">
+                <details>
+                    <summary>Show answers</summary>
+                    <div class="answers-box">...</div>
+                </details>
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <div class="name">Ewa Grabowska</div>
+                <div class="role">DevOps Engineer</div>
+            </div>
+
+            <div class="row-role">DevOps Engineer</div>
+
+            <div class="row-answers">
+                <details>
+                    <summary>Show answers</summary>
+                    <div class="answers-box">...</div>
+                </details>
+            </div>
         </div>
 
     </div>
+
 </div>
 
 <script>
-
 async function loadReports() {
     const res = await fetch("/api/results");
     const data = await res.json();
@@ -52,46 +164,43 @@ async function loadReports() {
             for (let j = 0; j < c.history.length; j++) {
                 const h = c.history[j];
 
-                answersHtml +=
-                    "<div class='answer'>" +
-                        "<b>" + (h.role || "") + ":</b> " +
-                        (h.content || "") +
-                    "</div>";
+                answersHtml += `
+                    <div class="answer">
+                        <b>${h.role || ""}:</b> ${h.content || ""}
+                    </div>
+                `;
             }
         }
 
-        html +=
-            "<div class='row " + (i === 0 ? "active" : "") + "'>" +
-
-                "<div class='row-top'>" +
-                    "<div>" +
-                        "<div class='name'>" + (c.name || "") + "</div>" +
-                        "<div class='role'>" + (c.role || "") + "</div>" +
-                    "</div>" +
-                "</div>" +
-
-                "<div class='row-role'>" +
-                    "Role: " + (c.role || "") +
-                "</div>" +
-
-                "<div class='row-answers'>" +
-                    "<details>" +
-                        "<summary>Show answers</summary>" +
-                        "<div class='answers-box'>" +
-                            answersHtml +
-                        "</div>" +
-                    "</details>" +
-                "</div>" +
-
-            "</div>";
+        html += `
+            <tr>
+                <td>${c.id ?? ""}</td>
+                <td>${c.name ?? ""}</td>
+                <td>${c.role ?? ""}</td>
+                <td>${c.personality?.openness ?? ""}</td>
+                <td>${c.personality?.conscientiousness ?? ""}</td>
+                <td>${c.personality?.extraversion ?? ""}</td>
+                <td>${c.personality?.agreeableness ?? ""}</td>
+                <td>${c.personality?.neuroticism ?? ""}</td>
+                <td>
+                    <details>
+                        <summary>Show answers</summary>
+                        <div class="answers-box">
+                            ${answersHtml}
+                        </div>
+                    </details>
+                </td>
+            </tr>
+        `;
     }
 
     document.getElementById("reports").innerHTML = html;
 }
 
 loadReports();
-
 </script>
-
+    <div class="table-footer">
+            <button class="btn-outline" onclick="window.location.href='/recruiter/dashboard.html'">Back to Dashboard</button>
+    </div>
 </body>
 </html>
