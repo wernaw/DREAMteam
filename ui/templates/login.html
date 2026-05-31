@@ -28,7 +28,9 @@
             <option value="recruiter">Recruiter</option>
         </select>
 
-        <button class="btn-primary" onclick="zaloguj()">
+        <p id="login-error" class="error-message" aria-live="polite"></p>
+
+        <button id="login-button" class="btn-primary" onclick="zaloguj()">
             Login
         </button>
 
@@ -37,28 +39,50 @@
 </div>
 
 <script>
-function zaloguj() {
-
-    const login = document.getElementById("login").value;
+async function zaloguj() {
+    const username = document.getElementById("login").value.trim();
     const password = document.getElementById("password").value;
-    const role = document.getElementById("role").value;
+    const selectedRole = document.getElementById("role").value;
+    const errorElement = document.getElementById("login-error");
+    const button = document.getElementById("login-button");
 
-    const candidateLogin = "candidate@mail.pl";
-    const candidatePass = "xxx";
+    errorElement.textContent = "";
+    button.disabled = true;
+    button.textContent = "Logging in...";
 
-    const recruiterLogin = "recruiter@mail.pl";
-    const recruiterPass = "xxx";
+    try {
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+        });
 
-    if (login === candidateLogin && password === candidatePass && role === "candidate") {
-        window.location.href = "candidate/chat.html";
-    }
+        if (!response.ok) {
+            throw new Error("Invalid username or password.");
+        }
 
-    else if (login === recruiterLogin && password === recruiterPass && role === "recruiter") {
-        window.location.href = "recruiter/dashboard.html";
-    }
+        const data = await response.json();
 
-    else {
-        alert("Błędny login lub hasło");
+        if (data.role !== selectedRole) {
+            throw new Error("Selected role does not match this account.");
+        }
+
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("token_type", data.token_type);
+        localStorage.setItem("role", data.role);
+
+        if (data.role === "candidate") {
+            window.location.href = "/candidate/chat.html";
+        } else if (data.role === "recruiter") {
+            window.location.href = "/recruiter/dashboard.html";
+        }
+    } catch (error) {
+        errorElement.textContent = error.message;
+    } finally {
+        button.disabled = false;
+        button.textContent = "Login";
     }
 }
 </script>
