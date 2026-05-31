@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='style_login.css') }}">
+</head>
+
+<body>
+
+<div class="login-wrapper">
+
+    <div class="login-card">
+
+        <h1>Welcome to DREAMteam</h1>
+        <p class="subtitle">Sign in to continue</p>
+
+        <label>Login</label>
+        <input id="login" type="text" placeholder="email@example.com">
+
+        <label>Password</label>
+        <input id="password" type="password" placeholder="••••••••">
+
+        <label>Role</label>
+        <select id="role">
+            <option value="candidate">Candidate</option>
+            <option value="recruiter">Recruiter</option>
+        </select>
+
+        <button class="btn-primary" onclick="zaloguj()">
+            Login
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+function zaloguj() {
+
+    const login = document.getElementById("login").value;
+    const password = document.getElementById("password").value;
+    const role = document.getElementById("role").value;
+
+    const candidateLogin = "candidate@mail.pl";
+    const candidatePass = "xxx";
+
+    const recruiterLogin = "recruiter@mail.pl";
+    const recruiterPass = "xxx";
+
+    if (login === candidateLogin && password === candidatePass && role === "candidate") {
+        window.location.href = "candidate/chat.html";
+    }
+
+    else if (login === recruiterLogin && password === recruiterPass && role === "recruiter") {
+        window.location.href = "recruiter/dashboard.html";
+    }
+
+    else {
+        alert("Błędny login lub hasło");
+    }
+}
+</script>
+
+</body>
+</html>

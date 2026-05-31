@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Candidate Chat</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='style_chat.css') }}">
+</head>
+
+<body>
+
+<div class="chat-container">
+
+
+    <div class="chat-header">
+        <h1>Interview</h1>
+    </div>
+
+
+    <div id="chat" class="chat-messages"></div>
+
+
+    <div class="chat-input">
+        <input id="message" placeholder="Type your answer...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+</div>
+
+<script>
+
+let history = [];
+
+async function sendMessage() {
+
+    const input = document.getElementById("message");
+    const message = input.value;
+
+    if (!message.trim()) return;
+
+    const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            history: history,
+            message: message
+        })
+    });
+
+    const data = await res.json();
+
+    history = data.history;
+
+    document.getElementById("chat").innerHTML +=
+        "<div class='message user'>" + message + "</div>" +
+        "<div class='message bot'>" + data.question + "</div>";
+
+    input.value = "";
+
+    const chatBox = document.getElementById("chat");
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    if (data.is_finished) {
+
+        document.getElementById("chat").innerHTML +=
+            "<div class='result'>" +
+                "<h3>Big Five Result</h3>" +
+                "<pre>" + JSON.stringify(data.scores, null, 2) + "</pre>" +
+            "</div>";
+    }
+}
+
+</script>
+
+</body>
+</html>

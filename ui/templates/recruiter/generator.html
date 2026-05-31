@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Generator</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='style_generator.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <h1>Generator</h1>
+
+    <button onclick="loadTeams()">Generate team</button>
+
+    <div class="team-container">
+
+        <div class="team-grid">
+
+            <div class="card active">
+                <div class="percent">90%</div>
+                <div class="dots">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+            </div>
+
+            <div class="card small">
+                <div class="percent">55%</div>
+                <div class="dots">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+
+            <div class="card small">
+                <div class="percent">45%</div>
+                <div class="dots">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="actions">
+            <button class="btn-outline" onclick="window.location.href='/recruiter/reports.html'">Reports</button>
+            <button class="btn-primary" onclick="window.location.href='/recruiter/dashboard.html'">Save</button>
+        </div>
+
+    </div>
+
+    <script>
+        let chartInstance = null;
+
+        function drawRadar(candidate) {
+            const ctx = document.getElementById("radarChart");
+
+            const data = {
+                labels: [
+                    "Openness",
+                    "Conscientiousness",
+                    "Extraversion",
+                    "Agreeableness",
+                    "Neuroticism"
+                ],
+                datasets: [{
+                    label: candidate.name,
+                    data: [
+                        Number(candidate.personality?.openness) || 0,
+                        Number(candidate.personality?.conscientiousness) || 0,
+                        Number(candidate.personality?.extraversion) || 0,
+                        Number(candidate.personality?.agreeableness) || 0,
+                        Number(candidate.personality?.neuroticism) || 0
+                    ],
+                    fill: true
+                }]
+            };
+
+            const config = {
+                type: "radar",
+                data: data,
+                options: {
+                    scales: {
+                        r: {
+                            suggestedMin: 0,
+                            suggestedMax: 1
+                        }
+                    }
+                }
+            };
+
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, config);
+        }
+    </script>
+
+</body>
+</html>
