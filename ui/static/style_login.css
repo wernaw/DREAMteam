@@ -1,0 +1,67 @@
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    background: radial-gradient(circle at top, #2a2f55, #0f1220);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.login-card {
+    width: 360px;
+    padding: 30px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 34px;
+    text-align: center;
+}
+
+.subtitle {
+    margin: 0 0 10px 0;
+    color: #aaa;
+    text-align: center;
+}
+
+label {
+    font-size: 13px;
+    color: #bbb;
+}
+
+input, select {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    outline: none;
+}
+
+button {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #6c5cff;
+    color: white;
+}

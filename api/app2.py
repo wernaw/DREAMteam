@@ -10,8 +10,8 @@ import json
 from pydantic import BaseModel
 
 
-BASE_DIR = Path(__file__).resolve().parent
-DATABASE_PATH = BASE_DIR / "dreamteam"
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATABASE_PATH = BASE_DIR / "api" / "dreamteam"
 
 app = FastAPI()
 
@@ -23,14 +23,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/api/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+app.mount(
+    "/api/static", StaticFiles(directory=BASE_DIR / "ui" / "static"), name="static"
+)
 
-templates = Jinja2Templates(directory=BASE_DIR / "templates")
+templates = Jinja2Templates(directory=BASE_DIR / "ui" / "templates")
 
 
-class ChatRequest(BaseModel):
+class CandidateChatRequest(BaseModel):
     history: list
     message: str | None = None
+
+
+class TeamGenerationRequest(BaseModel):
+    project_name: str
+    role: str
+    team_size: int
 
 
 def process_candidate_chat(history: list, message: str | None):
@@ -85,7 +93,7 @@ async def recruiter_reports(request: Request):
 
 
 @app.post("/api/chat")
-def chat(req: ChatRequest):
+def chat(req: CandidateChatRequest):
     result = process_candidate_chat(history=req.history, message=req.message)
 
     return JSONResponse(content=result)
