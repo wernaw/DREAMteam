@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from pathlib import Path
 from pydantic import BaseModel
@@ -12,12 +13,14 @@ import uvicorn
 
 from api.services.chatbot import candidate_chatbot
 from api.services.team_recommendation_service import form_and_rank_teams
+from api.services.auth_service import decode_access_token, login_user
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASE_PATH = BASE_DIR / "api" / "dreamteam"
 
 app = FastAPI()
+security = HTTPBearer(auto_error=False)
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,20 +48,75 @@ class TeamGenerationRequest(BaseModel):
     team_size: int
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+def get_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+):
+    token = (
+        credentials.credentials if credentials else request.cookies.get("access_token")
+    )
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing authentication token.")
+
+    payload = decode_access_token(token)
+
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired token.")
+
+    return payload
+
+
+def require_role(required_role: str):
+    def checker(user=Depends(get_current_user)):
+        if user.get("role") != required_role:
+            raise HTTPException(status_code=403, detail="Access forbidden.")
+
+        return user
+
+    return checker
+
+
 # logowanie
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse(request=request, name="login.html")
 
 
+@app.post("/login")
+def login(payload: LoginRequest):
+    result = login_user(payload.username, payload.password)
+
+    if not result["success"]:
+        raise HTTPException(status_code=401, detail=result["message"])
+
+    response = JSONResponse(content=result)
+    response.set_cookie(
+        key="access_token",
+        value=result["access_token"],
+        httponly=True,
+        samesite="lax",
+        path="/",
+    )
+
+    return response
+
+
 # rozmowa z kandydatem
 @app.get("/candidate/chat.html", response_class=HTMLResponse)
-async def candidate_chat_page(request: Request):
+async def candidate_chat_page(
+    request: Request, user=Depends(require_role("candidate"))
+):
     return templates.TemplateResponse(request=request, name="candidate/chat.html")
 
 
 @app.post("/api/chat")
-async def chat(req: CandidateChatRequest):
+async def chat(req: CandidateChatRequest, user=Depends(require_role("candidate"))):
     result = candidate_chatbot(history=req.history, candidate_answer=req.message)
 
     return result
@@ -68,7 +126,9 @@ async def chat(req: CandidateChatRequest):
 
 
 @app.get("/recruiter/dashboard.html", response_class=HTMLResponse)
-async def recruiter_dashboard(request: Request):
+async def recruiter_dashboard(
+    request: Request, user=Depends(require_role("recruiter"))
+):
     candidates = [
         {"name": "Anna", "role": "Frontend Developer"},
         {"name": "Jan", "role": "Backend Developer"},
@@ -84,19 +144,22 @@ async def recruiter_dashboard(request: Request):
 
 
 @app.get("/recruiter/generator.html", response_class=HTMLResponse)
-async def generator_page(request: Request):
+async def generator_page(request: Request, user=Depends(require_role("recruiter"))):
     return templates.TemplateResponse(request=request, name="recruiter/generator.html")
 
 
 @app.post("/recruiter/generator.html")
-async def generator(data: TeamGenerationRequest):
+async def generator(
+    data: TeamGenerationRequest,
+    user=Depends(require_role("recruiter")),
+):
     teams = form_and_rank_teams()
 
     return {"teams": teams}
 
 
 @app.get("/recruiter/reports.html", response_class=HTMLResponse)
-async def recruiter_reports(request: Request):
+async def recruiter_reports(request: Request, user=Depends(require_role("recruiter"))):
     reports = [
         {
             "team": "Team Alpha",
@@ -118,7 +181,7 @@ async def recruiter_reports(request: Request):
 
 
 @app.get("/api/reports")
-async def reports_api():
+async def reports_api(user=Depends(require_role("recruiter"))):
     reports = [{"team": "Team Alpha", "score": 92}, {"team": "Team Beta", "score": 85}]
 
     return {"reports": reports}
@@ -135,7 +198,7 @@ def parse_conversation_history(value):
 
 
 @app.get("/api/results")
-def get_results():
+def get_results(user=Depends(require_role("recruiter"))):
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
 

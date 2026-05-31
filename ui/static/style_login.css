@@ -65,3 +65,16 @@ button {
     background: #6c5cff;
     color: white;
 }
+
+.error-message {
+    min-height: 18px;
+    margin: 0;
+    color: #ff8a8a;
+    font-size: 13px;
+    text-align: center;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}

@@ -1,12 +1,14 @@
 import os
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from dotenv import load_dotenv
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parents[2]
+load_dotenv(BASE_DIR / ".env")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -19,12 +21,12 @@ USERS = {
     os.getenv("CANDIDATE_USERNAME"): {
         "password_hash": os.getenv("CANDIDATE_PASSWORD_HASH"),
         "role": "candidate",
-        "redirect_to": "/candidate",
+        "redirect_to": "/candidate/chat.html",
     },
     os.getenv("RECRUITER_USERNAME"): {
         "password_hash": os.getenv("RECRUITER_PASSWORD_HASH"),
         "role": "recruiter",
-        "redirect_to": "/recruiter",
+        "redirect_to": "/recruiter/dashboard.html",
     },
 }
 
