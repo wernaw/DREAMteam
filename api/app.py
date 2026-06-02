@@ -4,15 +4,16 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from starlette.concurrency import run_in_threadpool
 
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import json
 import sqlite3
 import uvicorn
 
 from api.services.chatbot import candidate_chatbot
-from api.services.team_recommendation_service import form_and_rank_teams
+from api.services.team_performance_simulator_openai import form_and_rank_teams
 from api.services.auth_service import decode_access_token, login_user
 
 
@@ -38,7 +39,7 @@ templates = Jinja2Templates(directory=BASE_DIR / "ui" / "templates")
 
 
 class CandidateChatRequest(BaseModel):
-    history: list
+    history: list[dict[str, str]] = Field(default_factory=list)
     message: str | None = None
 
 
@@ -117,7 +118,10 @@ async def candidate_chat_page(
 
 @app.post("/api/chat")
 async def chat(req: CandidateChatRequest, user=Depends(require_role("candidate"))):
-    result = candidate_chatbot(history=req.history, candidate_answer=req.message)
+    try:
+        result = candidate_chatbot(history=req.history, candidate_answer=req.message)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
     return result
 
@@ -153,7 +157,18 @@ async def generator(
     data: TeamGenerationRequest,
     user=Depends(require_role("recruiter")),
 ):
-    teams = form_and_rank_teams()
+    try:
+        teams = await run_in_threadpool(
+            form_and_rank_teams,
+            max_candidates_per_role=2,
+            save_to_database=True,
+            benchmark_limit=2,
+            simulation_runs=2,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
     return {"teams": teams}
 

@@ -106,6 +106,7 @@ def save_team_score_to_database(team_result):
         "risks": team_result.get("risks", []),
         "benchmark_analysis": team_result.get("benchmark_analysis", []),
         "summary": team_result.get("summary", ""),
+        "simulation_runs": team_result.get("simulation_runs", []),
     }
 
     connection = sqlite3.connect(DATABASE_PATH)
@@ -182,26 +183,39 @@ def normalize_llm_result(result):
     return result
 
 
-def simulate_team_performance(team, project_benchmarks):
+def simulation_variation(run_number):
+    variations = [
+        "baseline delivery with normal collaboration and typical project friction",
+        "higher pressure delivery with ambiguity, interruptions, and time constraints",
+        "distributed work with asynchronous communication and slower feedback loops",
+        "changing requirements that force reprioritization and negotiation",
+        "quality-focused delivery with review pressure and defect prevention",
+    ]
+
+    return variations[(run_number - 1) % len(variations)]
+
+
+def simulate_team_performance(
+    team, project_benchmarks, run_number=1, simulation_runs=1
+):
     team_data = [candidate_summary(candidate) for candidate in team]
 
     messages = [
         {
             "role": "system",
             "content": """
-You are an expert project team evaluator.
+You are an expert project team simulator.
 
-Evaluate whether a team is well matched for project work across the provided project benchmarks.
+Run one concrete behavioral simulation of how this team works through the provided project benchmarks.
+Do not only evaluate the static team composition. Imagine the team making decisions, communicating, reacting to pressure, resolving conflict, adapting to change, and delivering work.
 
-Consider:
-- role coverage,
-- personality fit,
-- collaboration potential,
-- ability to handle pressure,
-- ability to adapt to change,
-- ability to deliver reliably,
-- benchmark conditions,
-- what each benchmark tests.
+For each benchmark:
+- simulate the likely behavior of the team members based on their roles and Big Five personality scores,
+- consider collaboration dynamics, communication quality, reliability, stress response, adaptability, and delivery risk,
+- decide what happens in this specific run,
+- score the outcome for that benchmark.
+
+This is one simulation run, not an average of all possible outcomes. If multiple runs are requested, each run should represent a different plausible trajectory.
 
 Return only valid JSON.
 
@@ -218,13 +232,16 @@ Do not include markdown.
 Do not include explanations outside JSON.
 
 The performance_score must be a number from 0 to 100.
-Higher means the team is more likely to perform well across all benchmarks.
+Higher means the team is more likely to perform well across all simulated benchmarks.
 """,
         },
         {
             "role": "user",
             "content": json.dumps(
                 {
+                    "simulation_run": run_number,
+                    "total_simulation_runs": simulation_runs,
+                    "simulation_variation": simulation_variation(run_number),
                     "team": team_data,
                     "project_benchmarks": project_benchmarks,
                     "required_roles": REQUIRED_ROLES,
@@ -236,10 +253,10 @@ Higher means the team is more likely to perform well across all benchmarks.
                             {
                                 "benchmark_name": "string",
                                 "score": "number from 0 to 100",
-                                "analysis": "string",
+                                "analysis": "string describing what happened in this run",
                             }
                         ],
-                        "summary": "string",
+                        "summary": "string summarizing the simulated team behavior in this run",
                     },
                 }
             ),
@@ -251,12 +268,94 @@ Higher means the team is more likely to perform well across all benchmarks.
     result = normalize_llm_result(result)
 
     return {
+        "run_number": run_number,
         "performance_score": float(result.get("performance_score", 0)),
         "strengths": result.get("strengths", []),
         "risks": result.get("risks", []),
         "benchmark_analysis": result.get("benchmark_analysis", []),
         "summary": result.get("summary", ""),
     }
+
+
+def unique_strings(values, limit=6):
+    unique_values = []
+
+    for value in values:
+        if value and value not in unique_values:
+            unique_values.append(value)
+
+    return unique_values[:limit]
+
+
+def aggregate_benchmark_analysis(simulations):
+    benchmarks = {}
+
+    for simulation in simulations:
+        for benchmark in simulation.get("benchmark_analysis", []):
+            name = benchmark.get("benchmark_name", "Unknown benchmark")
+            benchmarks.setdefault(name, {"scores": [], "analyses": []})
+            benchmarks[name]["scores"].append(float(benchmark.get("score", 0)))
+            benchmarks[name]["analyses"].append(benchmark.get("analysis", ""))
+
+    return [
+        {
+            "benchmark_name": name,
+            "score": round(sum(data["scores"]) / len(data["scores"]), 2),
+            "analysis": " | ".join(unique_strings(data["analyses"], limit=3)),
+        }
+        for name, data in benchmarks.items()
+    ]
+
+
+def aggregate_simulations(simulations):
+    performance_score = round(
+        sum(simulation["performance_score"] for simulation in simulations)
+        / len(simulations),
+        2,
+    )
+
+    strengths = unique_strings(
+        strength
+        for simulation in simulations
+        for strength in simulation.get("strengths", [])
+    )
+    risks = unique_strings(
+        risk for simulation in simulations for risk in simulation.get("risks", [])
+    )
+    summaries = unique_strings(
+        simulation.get("summary", "") for simulation in simulations
+    )
+
+    return {
+        "performance_score": performance_score,
+        "strengths": strengths,
+        "risks": risks,
+        "benchmark_analysis": aggregate_benchmark_analysis(simulations),
+        "summary": f"Average of {len(simulations)} simulation runs. "
+        + " ".join(summaries),
+        "simulation_runs": [
+            {
+                "run_number": simulation["run_number"],
+                "performance_score": simulation["performance_score"],
+                "summary": simulation.get("summary", ""),
+            }
+            for simulation in simulations
+        ],
+    }
+
+
+def run_team_simulations(team, project_benchmarks, simulation_runs):
+    simulations = [
+        simulate_team_performance(
+            team,
+            project_benchmarks,
+            run_number=run_number,
+            simulation_runs=simulation_runs,
+        )
+        for run_number in range(1, simulation_runs + 1)
+    ]
+
+    return aggregate_simulations(simulations)
 
 
 def candidate_team_score(candidate):
@@ -293,8 +392,8 @@ def get_role_candidate_lists(grouped_candidates, max_candidates_per_role):
     return role_candidate_lists
 
 
-def build_ranked_team(team, selected_benchmarks):
-    simulation = simulate_team_performance(team, selected_benchmarks)
+def build_ranked_team(team, selected_benchmarks, simulation_runs):
+    simulation = run_team_simulations(team, selected_benchmarks, simulation_runs)
 
     return {
         "performance_score": simulation["performance_score"],
@@ -303,6 +402,7 @@ def build_ranked_team(team, selected_benchmarks):
         "risks": simulation["risks"],
         "benchmark_analysis": simulation["benchmark_analysis"],
         "summary": simulation["summary"],
+        "simulation_runs": simulation["simulation_runs"],
     }
 
 
@@ -315,6 +415,8 @@ def save_ranked_teams(ranked_teams):
 def top_team_response(team_result):
     return {
         "performance_score": team_result["performance_score"],
+        "simulation_runs": team_result.get("simulation_runs", []),
+        "summary": team_result.get("summary", ""),
         "team_members": [
             {
                 "id": candidate["id"],
@@ -330,6 +432,7 @@ def form_and_rank_teams(
     max_candidates_per_role=2,
     save_to_database=True,
     benchmark_limit=2,
+    simulation_runs=2,
 ):
     selected_benchmarks = PROJECT_BENCHMARKS[:benchmark_limit]
 
@@ -343,7 +446,7 @@ def form_and_rank_teams(
     )
 
     ranked_teams = [
-        build_ranked_team(team, selected_benchmarks)
+        build_ranked_team(team, selected_benchmarks, simulation_runs)
         for team in itertools.product(*role_candidate_lists)
     ]
 

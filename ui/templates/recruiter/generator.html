@@ -13,37 +13,12 @@
 
     <h1>Generator</h1>
 
-    <button onclick="loadTeams()">Generate team</button>
+    <button id="generateButton" onclick="loadTeams()">Generate team</button>
+    <p id="generatorStatus" class="status"></p>
 
     <div class="team-container">
 
-        <div class="team-grid">
-
-            <div class="card active">
-                <div class="percent">90%</div>
-                <div class="dots">
-                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                </div>
-            </div>
-
-            <div class="card small">
-                <div class="percent">55%</div>
-                <div class="dots">
-                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                    <div class="dot"></div>
-                </div>
-            </div>
-
-            <div class="card small">
-                <div class="percent">45%</div>
-                <div class="dots">
-                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                    <div class="dot"></div>
-                </div>
-            </div>
-
-        </div>
+        <div id="teamGrid" class="team-grid"></div>
 
         <div class="actions">
             <button class="btn-outline" onclick="window.location.href='/recruiter/reports.html'">Reports</button>
@@ -53,48 +28,67 @@
     </div>
 
     <script>
-        let chartInstance = null;
+        const generateButton = document.getElementById("generateButton");
+        const generatorStatus = document.getElementById("generatorStatus");
+        const teamGrid = document.getElementById("teamGrid");
 
-        function drawRadar(candidate) {
-            const ctx = document.getElementById("radarChart");
+        function renderTeam(team, index) {
+            const card = document.createElement("div");
+            card.className = index === 0 ? "card active" : "card small";
 
-            const data = {
-                labels: [
-                    "Openness",
-                    "Conscientiousness",
-                    "Extraversion",
-                    "Agreeableness",
-                    "Neuroticism"
-                ],
-                datasets: [{
-                    label: candidate.name,
-                    data: [
-                        Number(candidate.personality?.openness) || 0,
-                        Number(candidate.personality?.conscientiousness) || 0,
-                        Number(candidate.personality?.extraversion) || 0,
-                        Number(candidate.personality?.agreeableness) || 0,
-                        Number(candidate.personality?.neuroticism) || 0
-                    ],
-                    fill: true
-                }]
-            };
+            const score = Math.round(Number(team.performance_score) || 0);
+            const members = team.team_members || [];
+            const runs = team.simulation_runs || [];
 
-            const config = {
-                type: "radar",
-                data: data,
-                options: {
-                    scales: {
-                        r: {
-                            suggestedMin: 0,
-                            suggestedMax: 1
-                        }
-                    }
+            card.innerHTML =
+                "<div class='percent'>" + score + "%</div>" +
+                "<div class='team-title'>Team " + (index + 1) + "</div>" +
+                "<div class='run-count'>Runs: " + runs.length + "</div>" +
+                "<div class='member-list'>" +
+                    members.map((member) =>
+                        "<div class='member'>" +
+                            "<span>" + member.name + "</span>" +
+                            "<small>" + member.role + "</small>" +
+                        "</div>"
+                    ).join("") +
+                "</div>";
+
+            teamGrid.appendChild(card);
+        }
+
+        async function loadTeams() {
+            generateButton.disabled = true;
+            generatorStatus.textContent = "Generating teams...";
+            teamGrid.innerHTML = "";
+
+            try {
+                const response = await fetch("/recruiter/generator.html", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        project_name: "Default project",
+                        role: "All roles",
+                        team_size: 6
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Team generation failed.");
                 }
-            };
 
-            if (chartInstance) chartInstance.destroy();
-
-            chartInstance = new Chart(ctx, config);
+                data.teams.forEach(renderTeam);
+                generatorStatus.textContent = data.teams.length
+                    ? "Generated " + data.teams.length + " recommended teams."
+                    : "No teams were generated.";
+            } catch (error) {
+                generatorStatus.textContent = error.message;
+            } finally {
+                generateButton.disabled = false;
+            }
         }
     </script>
 

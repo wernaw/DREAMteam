@@ -1,13 +1,19 @@
 import json
 import sqlite3
+import subprocess
+import time
 import urllib.request
 import urllib.error
 from pathlib import Path
 
 
-OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
+OLLAMA_BASE_URL = "http://127.0.0.1:11434"
+OLLAMA_URL = f"{OLLAMA_BASE_URL}/api/chat"
 OLLAMA_MODEL = "llama3"
+OLLAMA_STARTUP_TIMEOUT_SECONDS = 20
 MAX_PERSONALITY_QUESTIONS = 5
+
+ollama_process = None
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 DATABASE_PATH = BASE_DIR / "dreamteam"
@@ -71,7 +77,50 @@ Format:
 """
 
 
+def is_ollama_running():
+    request = urllib.request.Request(f"{OLLAMA_BASE_URL}/api/tags", method="GET")
+
+    try:
+        with urllib.request.urlopen(request, timeout=2):
+            return True
+    except urllib.error.URLError:
+        return False
+
+
+def start_ollama():
+    global ollama_process
+
+    if is_ollama_running():
+        return
+
+    try:
+        ollama_process = subprocess.Popen(
+            ["ollama", "serve"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except FileNotFoundError as error:
+        raise RuntimeError(
+            "Ollama is not installed or the `ollama` command is not available."
+        ) from error
+
+    deadline = time.monotonic() + OLLAMA_STARTUP_TIMEOUT_SECONDS
+
+    while time.monotonic() < deadline:
+        if is_ollama_running():
+            return
+
+        time.sleep(0.5)
+
+    raise RuntimeError(
+        "Ollama could not be started automatically. Start it manually with `ollama serve`."
+    )
+
+
 def call_ollama(messages, json_format=False):
+    start_ollama()
+
     payload = {
         "model": OLLAMA_MODEL,
         "messages": messages,
@@ -97,7 +146,7 @@ def call_ollama(messages, json_format=False):
             f"Ollama returned HTTP {error.code}: {error_body}"
         ) from error
     except urllib.error.URLError as error:
-        raise RuntimeError("Ollama is not running.") from error
+        raise RuntimeError("Ollama could not be reached.") from error
 
     return data["message"]["content"].strip()
 
@@ -211,6 +260,17 @@ def candidate_chatbot(history, candidate_answer=None):
             raw_scores = call_ollama(scoring_messages, json_format=True)
             scores = json.loads(raw_scores)
 
+            final_message = (
+                f"Thank you for the conversation, {first_name}. "
+                "I wish you the best of luck in the recruitment process."
+            )
+            messages.append(
+                {
+                    "role": "Recruiter",
+                    "content": final_message,
+                }
+            )
+
             result_id = save_chatbot_result(
                 first_name=first_name,
                 surname=surname,
@@ -221,8 +281,8 @@ def candidate_chatbot(history, candidate_answer=None):
 
             return {
                 "is_finished": True,
-                "question": None,
-                "scores": scores,
+                "question": final_message,
+                "scores": None,
                 "first_name": first_name,
                 "surname": surname,
                 "role": role,
