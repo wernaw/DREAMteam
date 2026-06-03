@@ -22,6 +22,11 @@
 
     <div class="chat-input">
         <input id="message" placeholder="Type your answer...">
+        <select id="projectSelect" hidden>
+            {% for project in project_options %}
+            <option value="{{ project }}">{{ project }}</option>
+            {% endfor %}
+        </select>
         <button onclick="sendMessage()">Send</button>
     </div>
 
@@ -33,6 +38,7 @@ let history = [];
 
 const chatBox = document.getElementById("chat");
 const input = document.getElementById("message");
+const projectSelect = document.getElementById("projectSelect");
 
 function appendMessage(type, text) {
     if (!text) return;
@@ -65,13 +71,25 @@ async function callChatbot(message = null) {
     history = data.history;
     appendMessage("bot", data.question);
 
+    const projectOptions = data.project_options || [];
+    projectSelect.hidden = projectOptions.length === 0;
+    input.hidden = projectOptions.length > 0;
+
+    if (projectOptions.length > 0) {
+        projectSelect.innerHTML = projectOptions
+            .map((project) => "<option value='" + project + "'>" + project + "</option>")
+            .join("");
+    }
+
     if (data.is_finished) {
         input.disabled = true;
+        projectSelect.disabled = true;
     }
 }
 
 async function sendMessage() {
-    const message = input.value;
+    const isSelectingProject = !projectSelect.hidden;
+    const message = isSelectingProject ? projectSelect.value : input.value;
 
     if (!message.trim()) return;
 

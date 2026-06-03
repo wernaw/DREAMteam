@@ -71,27 +71,33 @@ def call_openai(messages, json_format=False):
     return data["choices"][0]["message"]["content"].strip()
 
 
-def get_candidates_from_database():
+def get_candidates_from_database(project_name=None):
     connection = sqlite3.connect(DATABASE_PATH)
     connection.row_factory = sqlite3.Row
 
     try:
         cursor = connection.cursor()
-        cursor.execute(
-            """
+        query = """
             SELECT
                 id,
                 first_name,
                 surname,
                 role,
+                project_name,
                 openness,
                 conscientiousness,
                 extraversion,
                 agreeableness,
                 neuroticism
             FROM candidate_personality_scores
-            """
-        )
+        """
+        params = []
+
+        if project_name:
+            query += " WHERE project_name = ?"
+            params.append(project_name)
+
+        cursor.execute(query, params)
 
         return [dict(row) for row in cursor.fetchall()]
     finally:
@@ -152,6 +158,7 @@ def candidate_summary(candidate):
         "id": candidate["id"],
         "name": f"{candidate['first_name']} {candidate['surname']}",
         "role": candidate["role"],
+        "project_name": candidate.get("project_name"),
         "personality": {
             "openness": candidate["openness"],
             "conscientiousness": candidate["conscientiousness"],
@@ -422,6 +429,7 @@ def top_team_response(team_result):
                 "id": candidate["id"],
                 "name": candidate["name"],
                 "role": candidate["role"],
+                "project_name": candidate.get("project_name"),
             }
             for candidate in team_result["team"]
         ],
@@ -433,10 +441,11 @@ def form_and_rank_teams(
     save_to_database=True,
     benchmark_limit=2,
     simulation_runs=2,
+    project_name=None,
 ):
     selected_benchmarks = PROJECT_BENCHMARKS[:benchmark_limit]
 
-    candidates = get_candidates_from_database()
+    candidates = get_candidates_from_database(project_name=project_name)
     grouped_candidates = group_candidates_by_role(candidates)
     validate_role_coverage(grouped_candidates)
 

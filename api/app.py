@@ -14,6 +14,7 @@ import uvicorn
 
 from api.services.chatbot import candidate_chatbot
 from api.services.team_performance_simulator_openai import form_and_rank_teams
+from api.services.project_service import add_project, get_project_names
 from api.services.auth_service import decode_access_token, login_user
 
 
@@ -113,7 +114,11 @@ def login(payload: LoginRequest):
 async def candidate_chat_page(
     request: Request, user=Depends(require_role("candidate"))
 ):
-    return templates.TemplateResponse(request=request, name="candidate/chat.html")
+    return templates.TemplateResponse(
+        request=request,
+        name="candidate/chat.html",
+        context={"project_options": get_project_names()},
+    )
 
 
 @app.post("/api/chat")
@@ -158,12 +163,14 @@ async def generator(
     user=Depends(require_role("recruiter")),
 ):
     try:
+        project_name = add_project(data.project_name)
         teams = await run_in_threadpool(
             form_and_rank_teams,
             max_candidates_per_role=2,
             save_to_database=True,
             benchmark_limit=2,
             simulation_runs=2,
+            project_name=project_name,
         )
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
@@ -223,6 +230,7 @@ def get_results(user=Depends(require_role("recruiter"))):
             first_name,
             surname,
             role,
+            project_name,
             openness,
             conscientiousness,
             extraversion,
@@ -244,14 +252,15 @@ def get_results(user=Depends(require_role("recruiter"))):
                 "id": row[0],
                 "name": f"{row[1]} {row[2]}",
                 "role": row[3],
+                "project_name": row[4],
                 "personality": {
-                    "openness": row[4],
-                    "conscientiousness": row[5],
-                    "extraversion": row[6],
-                    "agreeableness": row[7],
-                    "neuroticism": row[8],
+                    "openness": row[5],
+                    "conscientiousness": row[6],
+                    "extraversion": row[7],
+                    "agreeableness": row[8],
+                    "neuroticism": row[9],
                 },
-                "history": parse_conversation_history(row[9]),
+                "history": parse_conversation_history(row[10]),
             }
         )
 

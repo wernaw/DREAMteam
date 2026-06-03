@@ -105,7 +105,8 @@ body::after {
     background: rgba(255,255,255,0.03);
 }
 
-.chat-input input {
+.chat-input input,
+.chat-input select {
     flex: 1;
     padding: 12px;
     border-radius: 12px;

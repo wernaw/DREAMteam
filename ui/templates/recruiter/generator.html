@@ -13,7 +13,13 @@
 
     <h1>Generator</h1>
 
-    <button id="generateButton" onclick="loadTeams()">Generate team</button>
+    <div class="generator-controls">
+        <label>
+            Project name
+            <input id="projectName" type="text" value="Revenue Insights">
+        </label>
+        <button id="generateButton" onclick="loadTeams()">Generate team</button>
+    </div>
     <p id="generatorStatus" class="status"></p>
 
     <div id="generationLoader" class="generation-loader" hidden aria-live="polite">
@@ -61,6 +67,7 @@
         const generatorStatus = document.getElementById("generatorStatus");
         const generationLoader = document.getElementById("generationLoader");
         const teamGrid = document.getElementById("teamGrid");
+        const projectNameInput = document.getElementById("projectName");
 
         function renderTeam(team, index) {
             const card = document.createElement("div");
@@ -99,7 +106,7 @@
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        project_name: "Default project",
+                        project_name: projectNameInput.value.trim() || "Revenue Insights",
                         role: "All roles",
                         team_size: 6
                     })

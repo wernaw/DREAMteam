@@ -46,6 +46,7 @@ def test_candidate_personality_scores_columns_exist():
         "first_name",
         "surname",
         "role",
+        "project_name",
         "openness",
         "conscientiousness",
         "extraversion",
