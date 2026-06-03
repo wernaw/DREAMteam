@@ -108,6 +108,7 @@ def save_team_score_to_database(team_result):
     team_member_ids = [candidate["id"] for candidate in team_result["team"]]
 
     simulation_summary = {
+        "project_name": team_result.get("project_name"),
         "strengths": team_result.get("strengths", []),
         "risks": team_result.get("risks", []),
         "benchmark_analysis": team_result.get("benchmark_analysis", []),
@@ -124,14 +125,16 @@ def save_team_score_to_database(team_result):
             INSERT INTO team_score (
                 team_member_ids,
                 performance_score,
-                summary
+                summary,
+                project_name
             )
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?)
             """,
             (
                 json.dumps(team_member_ids),
                 team_result["performance_score"],
                 json.dumps(simulation_summary),
+                team_result.get("project_name"),
             ),
         )
 
@@ -399,10 +402,11 @@ def get_role_candidate_lists(grouped_candidates, max_candidates_per_role):
     return role_candidate_lists
 
 
-def build_ranked_team(team, selected_benchmarks, simulation_runs):
+def build_ranked_team(team, selected_benchmarks, simulation_runs, project_name=None):
     simulation = run_team_simulations(team, selected_benchmarks, simulation_runs)
 
     return {
+        "project_name": project_name,
         "performance_score": simulation["performance_score"],
         "team": [candidate_summary(candidate) for candidate in team],
         "strengths": simulation["strengths"],
@@ -421,6 +425,7 @@ def save_ranked_teams(ranked_teams):
 
 def top_team_response(team_result):
     return {
+        "project_name": team_result.get("project_name"),
         "performance_score": team_result["performance_score"],
         "simulation_runs": team_result.get("simulation_runs", []),
         "summary": team_result.get("summary", ""),
@@ -455,7 +460,12 @@ def form_and_rank_teams(
     )
 
     ranked_teams = [
-        build_ranked_team(team, selected_benchmarks, simulation_runs)
+        build_ranked_team(
+            team,
+            selected_benchmarks,
+            simulation_runs,
+            project_name=project_name,
+        )
         for team in itertools.product(*role_candidate_lists)
     ]
 
