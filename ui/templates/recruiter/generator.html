@@ -16,6 +16,35 @@
     <button id="generateButton" onclick="loadTeams()">Generate team</button>
     <p id="generatorStatus" class="status"></p>
 
+    <div id="generationLoader" class="generation-loader" hidden aria-live="polite">
+        <div class="collab-scene" aria-hidden="true">
+            <div class="connection-line line-one"></div>
+            <div class="connection-line line-two"></div>
+            <div class="shared-board">
+                <div class="board-row row-one"></div>
+                <div class="board-row row-two"></div>
+                <div class="board-row row-three"></div>
+            </div>
+            <div class="work-card card-one"></div>
+            <div class="work-card card-two"></div>
+            <div class="person person-left">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm"></div>
+            </div>
+            <div class="person person-center">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm"></div>
+            </div>
+            <div class="person person-right">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="team-container">
 
         <div id="teamGrid" class="team-grid"></div>
@@ -30,6 +59,7 @@
     <script>
         const generateButton = document.getElementById("generateButton");
         const generatorStatus = document.getElementById("generatorStatus");
+        const generationLoader = document.getElementById("generationLoader");
         const teamGrid = document.getElementById("teamGrid");
 
         function renderTeam(team, index) {
@@ -58,7 +88,8 @@
 
         async function loadTeams() {
             generateButton.disabled = true;
-            generatorStatus.textContent = "Generating teams...";
+            generationLoader.hidden = false;
+            generatorStatus.textContent = "Simulating team collaboration...";
             teamGrid.innerHTML = "";
 
             try {
@@ -87,6 +118,7 @@
             } catch (error) {
                 generatorStatus.textContent = error.message;
             } finally {
+                generationLoader.hidden = true;
                 generateButton.disabled = false;
             }
         }

@@ -4,7 +4,7 @@ body {
     background: radial-gradient(circle at top, #2a2f55, #0f1220);
     color: white;
     text-align: center;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 .team-container {
@@ -52,6 +52,235 @@ body {
 .status {
     min-height: 24px;
     color: rgba(255,255,255,0.78);
+}
+
+.generation-loader[hidden] {
+    display: none;
+}
+
+.generation-loader {
+    width: min(640px, 92vw);
+    margin: 12px auto 0;
+    padding: 18px;
+}
+
+.collab-scene {
+    position: relative;
+    height: 230px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    background:
+        linear-gradient(140deg, rgba(47, 166, 255, 0.16), rgba(58, 206, 130, 0.1)),
+        rgba(255,255,255,0.04);
+}
+
+.shared-board {
+    position: absolute;
+    top: 48px;
+    left: 50%;
+    width: 170px;
+    height: 96px;
+    transform: translateX(-50%);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.24);
+    animation: boardPulse 2.4s ease-in-out infinite;
+}
+
+.board-row {
+    position: absolute;
+    left: 22px;
+    height: 10px;
+    border-radius: 999px;
+    background: #2fa6ff;
+}
+
+.row-one {
+    top: 24px;
+    width: 112px;
+}
+
+.row-two {
+    top: 46px;
+    width: 86px;
+    background: #3ace82;
+}
+
+.row-three {
+    top: 68px;
+    width: 124px;
+    background: #ffbd59;
+}
+
+.connection-line {
+    position: absolute;
+    top: 106px;
+    left: 50%;
+    width: 240px;
+    height: 2px;
+    transform-origin: left center;
+    background: linear-gradient(90deg, transparent, rgba(47,166,255,0.9), transparent);
+    animation: lineGlow 1.8s ease-in-out infinite;
+}
+
+.line-one {
+    transform: rotate(24deg) translateX(-120px);
+}
+
+.line-two {
+    transform: rotate(-24deg) translateX(-120px);
+    animation-delay: 0.5s;
+}
+
+.work-card {
+    position: absolute;
+    width: 44px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.18);
+}
+
+.card-one {
+    top: 42px;
+    left: 112px;
+    animation: floatCardOne 2.8s ease-in-out infinite;
+}
+
+.card-two {
+    right: 122px;
+    bottom: 58px;
+    animation: floatCardTwo 3s ease-in-out infinite;
+}
+
+.person {
+    position: absolute;
+    bottom: 34px;
+    width: 78px;
+    height: 112px;
+    animation: personFocus 2.6s ease-in-out infinite;
+}
+
+.person-left {
+    left: 82px;
+    animation-delay: 0.1s;
+}
+
+.person-center {
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 0.35s;
+}
+
+.person-right {
+    right: 82px;
+    animation-delay: 0.65s;
+}
+
+.head {
+    width: 34px;
+    height: 34px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: #ffd6a5;
+}
+
+.body {
+    width: 54px;
+    height: 62px;
+    margin: 8px auto 0;
+    border-radius: 8px 8px 18px 18px;
+    background: #2fa6ff;
+}
+
+.person-center .body {
+    background: #3ace82;
+}
+
+.person-right .body {
+    background: #ff8f70;
+}
+
+.arm {
+    position: absolute;
+    top: 56px;
+    left: 52px;
+    width: 42px;
+    height: 9px;
+    border-radius: 999px;
+    background: #ffd6a5;
+    transform-origin: left center;
+    animation: armPoint 1.9s ease-in-out infinite;
+}
+
+.person-right .arm {
+    left: -16px;
+    transform-origin: right center;
+    animation-name: armPointRight;
+}
+
+@keyframes boardPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.03);
+    }
+}
+
+@keyframes lineGlow {
+    0%, 100% {
+        opacity: 0.25;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes floatCardOne {
+    0%, 100% {
+        transform: translate(0, 0) rotate(-5deg);
+    }
+    50% {
+        transform: translate(42px, 28px) rotate(4deg);
+    }
+}
+
+@keyframes floatCardTwo {
+    0%, 100% {
+        transform: translate(0, 0) rotate(6deg);
+    }
+    50% {
+        transform: translate(-42px, -24px) rotate(-4deg);
+    }
+}
+
+@keyframes personFocus {
+    0%, 100% {
+        translate: 0 0;
+    }
+    50% {
+        translate: 0 -6px;
+    }
+}
+
+@keyframes armPoint {
+    0%, 100% {
+        rotate: -14deg;
+    }
+    50% {
+        rotate: -34deg;
+    }
+}
+
+@keyframes armPointRight {
+    0%, 100% {
+        rotate: 14deg;
+    }
+    50% {
+        rotate: 34deg;
+    }
 }
 
 .team-title {
@@ -145,5 +374,69 @@ button {
 
     .team-container {
         width: 95%;
+    }
+}
+
+@media (max-width: 700px) {
+    .generation-loader {
+        width: 94vw;
+        padding: 10px;
+    }
+
+    .collab-scene {
+        height: 210px;
+    }
+
+    .shared-board {
+        top: 42px;
+        width: 140px;
+        height: 86px;
+    }
+
+    .person {
+        width: 62px;
+        height: 100px;
+    }
+
+    .person-left {
+        left: 24px;
+    }
+
+    .person-right {
+        right: 24px;
+    }
+
+    .body {
+        width: 46px;
+        height: 56px;
+    }
+
+    .arm {
+        width: 30px;
+        left: 44px;
+    }
+
+    .person-right .arm {
+        left: -12px;
+    }
+
+    .connection-line {
+        width: 180px;
+    }
+
+    .line-one {
+        transform: rotate(25deg) translateX(-90px);
+    }
+
+    .line-two {
+        transform: rotate(-25deg) translateX(-90px);
+    }
+
+    .card-one {
+        left: 56px;
+    }
+
+    .card-two {
+        right: 58px;
     }
 }
