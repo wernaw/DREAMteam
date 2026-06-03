@@ -1,22 +1,26 @@
 import json
+import os
 import sqlite3
-import subprocess
-import time
 import urllib.request
 import urllib.error
 from pathlib import Path
 
+from dotenv import load_dotenv
 
-OLLAMA_BASE_URL = "http://127.0.0.1:11434"
-OLLAMA_URL = f"{OLLAMA_BASE_URL}/api/chat"
-OLLAMA_MODEL = "llama3"
-OLLAMA_STARTUP_TIMEOUT_SECONDS = 20
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / ".env")
+
+OPENAI_URL = os.getenv(
+    "OPENAI_URL",
+    "https://api.openai.com/v1/chat/completions",
+)
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_TIMEOUT = int(os.getenv("OPENAI_TIMEOUT", "120"))
 MAX_PERSONALITY_QUESTIONS = 5
 
-ollama_process = None
-
-BASE_DIR = Path(__file__).resolve().parents[1]
-DATABASE_PATH = BASE_DIR / "dreamteam"
+DATABASE_PATH = PROJECT_ROOT / os.getenv("DATABASE_PATH", "api/dreamteam")
 
 
 SYSTEM_PROMPT_RECRUITER = """
@@ -77,78 +81,59 @@ Format:
 """
 
 
-def is_ollama_running():
-    request = urllib.request.Request(f"{OLLAMA_BASE_URL}/api/tags", method="GET")
+def to_openai_messages(messages):
+    role_mapping = {
+        "Candidate": "user",
+        "Recruiter": "assistant",
+        "system": "system",
+        "user": "user",
+        "assistant": "assistant",
+    }
 
-    try:
-        with urllib.request.urlopen(request, timeout=2):
-            return True
-    except urllib.error.URLError:
-        return False
-
-
-def start_ollama():
-    global ollama_process
-
-    if is_ollama_running():
-        return
-
-    try:
-        ollama_process = subprocess.Popen(
-            ["ollama", "serve"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            start_new_session=True,
-        )
-    except FileNotFoundError as error:
-        raise RuntimeError(
-            "Ollama is not installed or the `ollama` command is not available."
-        ) from error
-
-    deadline = time.monotonic() + OLLAMA_STARTUP_TIMEOUT_SECONDS
-
-    while time.monotonic() < deadline:
-        if is_ollama_running():
-            return
-
-        time.sleep(0.5)
-
-    raise RuntimeError(
-        "Ollama could not be started automatically. Start it manually with `ollama serve`."
-    )
+    return [
+        {
+            "role": role_mapping.get(message["role"], "user"),
+            "content": message["content"],
+        }
+        for message in messages
+    ]
 
 
-def call_ollama(messages, json_format=False):
-    start_ollama()
+def call_openai(messages, json_format=False):
+    if not OPENAI_API_KEY:
+        raise RuntimeError("OPENAI_API_KEY environment variable is not set.")
 
     payload = {
-        "model": OLLAMA_MODEL,
-        "messages": messages,
-        "stream": False,
+        "model": OPENAI_MODEL,
+        "messages": to_openai_messages(messages),
+        "temperature": 0.2,
     }
 
     if json_format:
-        payload["format"] = "json"
+        payload["response_format"] = {"type": "json_object"}
 
     request = urllib.request.Request(
-        OLLAMA_URL,
+        OPENAI_URL,
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+        },
         method="POST",
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
+        with urllib.request.urlopen(request, timeout=OPENAI_TIMEOUT) as response:
             data = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         error_body = error.read().decode("utf-8")
         raise RuntimeError(
-            f"Ollama returned HTTP {error.code}: {error_body}"
+            f"OpenAI API returned HTTP {error.code}: {error_body}"
         ) from error
     except urllib.error.URLError as error:
-        raise RuntimeError("Ollama could not be reached.") from error
+        raise RuntimeError("Could not connect to OpenAI API.") from error
 
-    return data["message"]["content"].strip()
+    return data["choices"][0]["message"]["content"].strip()
 
 
 def get_user_messages(messages):
@@ -257,7 +242,7 @@ def candidate_chatbot(history, candidate_answer=None):
                 *messages,
             ]
 
-            raw_scores = call_ollama(scoring_messages, json_format=True)
+            raw_scores = call_openai(scoring_messages, json_format=True)
             scores = json.loads(raw_scores)
 
             final_message = (
@@ -307,7 +292,7 @@ def candidate_chatbot(history, candidate_answer=None):
             },
         ]
 
-        question = call_ollama(recruiter_messages)
+        question = call_openai(recruiter_messages)
 
     messages.append(
         {
