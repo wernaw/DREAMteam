@@ -16,9 +16,13 @@
     <div class="generator-controls">
         <label>
             Project name
-            <input id="projectName" type="text" value="Revenue Insights">
+            <select id="projectName">
+                {% for project_name in project_options %}
+                    <option value="{{ project_name }}">{{ project_name }}</option>
+                {% endfor %}
+            </select>
         </label>
-        <button id="generateButton" onclick="loadTeams()">Generate team</button>
+        <button id="generateButton" onclick="loadTeams()" {% if not project_options %}disabled{% endif %}>Generate team</button>
     </div>
     <p id="generatorStatus" class="status"></p>
 
@@ -53,6 +57,36 @@
 
     <div class="team-container">
 
+        <section class="team-map-panel">
+            <div class="section-header">
+                <div>
+                    <h2>Feature map</h2>
+                    <span id="teamMapCount" class="section-meta">0 teams</span>
+                </div>
+                <div class="legend" aria-hidden="true">
+                    <span><i class="legend-dot top"></i>Best team</span>
+                    <span><i class="legend-dot standard"></i>Other top teams</span>
+                </div>
+            </div>
+            <div class="map-canvas-wrap">
+                <canvas id="teamMapChart"></canvas>
+            </div>
+        </section>
+
+        <div class="section-header top-team-header">
+            <div>
+                <h2>Top 3</h2>
+                <span class="section-meta">Recommended teams</span>
+            </div>
+        </div>
+
+        <div class="score-legend" aria-label="Team score legend">
+            <span><b>C</b> Collaboration</span>
+            <span><b>M</b> Communication</span>
+            <span><b>D</b> Delivery</span>
+            <span><b>R</b> Risk <small>lower is better</small></span>
+        </div>
+
         <div id="teamGrid" class="team-grid"></div>
 
         <div class="actions">
@@ -68,6 +102,22 @@
         const generationLoader = document.getElementById("generationLoader");
         const teamGrid = document.getElementById("teamGrid");
         const projectNameInput = document.getElementById("projectName");
+        const teamMapCount = document.getElementById("teamMapCount");
+        const teamMapCanvas = document.getElementById("teamMapChart");
+        let teamMapChart;
+
+        function escapeHtml(value) {
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function percent(value, scale = 1) {
+            return Math.round((Number(value) || 0) * scale);
+        }
 
         function renderTeam(team, index) {
             const card = document.createElement("div");
@@ -79,18 +129,152 @@
 
             card.innerHTML =
                 "<div class='percent'>" + score + "%</div>" +
-                "<div class='team-title'>Team " + (index + 1) + "</div>" +
+                "<div class='team-title'>Team " + (team.rank_position || index + 1) + "</div>" +
                 "<div class='run-count'>Runs: " + runs.length + "</div>" +
+                "<div class='score-strip'>" +
+                    "<span>C " + percent(team.collaboration_score, 100) + "</span>" +
+                    "<span>M " + percent(team.communication_score, 100) + "</span>" +
+                    "<span>D " + percent(team.delivery_score, 100) + "</span>" +
+                    "<span>R " + percent(team.risk_score, 100) + "</span>" +
+                "</div>" +
                 "<div class='member-list'>" +
                     members.map((member) =>
                         "<div class='member'>" +
-                            "<span>" + member.name + "</span>" +
-                            "<small>" + member.role + "</small>" +
+                            "<span>" + escapeHtml(member.name) + "</span>" +
+                            "<small>" + escapeHtml(member.role) + "</small>" +
                         "</div>"
                     ).join("") +
                 "</div>";
 
             teamGrid.appendChild(card);
+        }
+
+        function metricPercent(value) {
+            const numericValue = Number(value) || 0;
+            const scaledValue = Math.abs(numericValue) <= 1 ? numericValue * 100 : numericValue;
+
+            return Math.round(scaledValue);
+        }
+
+        function teamFeatureValues(team) {
+            return [
+                metricPercent(team.performance_score),
+                metricPercent(team.collaboration_score),
+                metricPercent(team.communication_score),
+                metricPercent(team.delivery_score),
+                metricPercent(team.risk_score)
+            ];
+        }
+
+        function renderTeamMap(teamMap) {
+            const topTeams = teamMap
+                .slice()
+                .sort((firstTeam, secondTeam) => (firstTeam.rank_position || 999) - (secondTeam.rank_position || 999))
+                .slice(0, 3);
+            const palette = [
+                { border: "#36d399", background: "rgba(54, 211, 153, 0.18)" },
+                { border: "#2fa6ff", background: "rgba(47, 166, 255, 0.14)" },
+                { border: "#ffbd59", background: "rgba(255, 189, 89, 0.13)" }
+            ];
+
+            teamMapCount.textContent = teamMap.length
+                ? teamMap.length + " teams · showing top " + topTeams.length
+                : "0 teams";
+
+            if (typeof Chart === "undefined") {
+                return;
+            }
+
+            const existingChart = Chart.getChart(teamMapCanvas);
+
+            if (existingChart) {
+                existingChart.destroy();
+            }
+
+            teamMapChart = null;
+
+            if (!topTeams.length) {
+                return;
+            }
+
+            teamMapChart = new Chart(teamMapCanvas, {
+                type: "radar",
+                data: {
+                    labels: [
+                        "performance_score",
+                        "collaboration_score",
+                        "communication_score",
+                        "delivery_score",
+                        "risk_score"
+                    ],
+                    datasets: topTeams.map((team, index) => ({
+                        label: "Team " + (team.rank_position || index + 1),
+                        data: teamFeatureValues(team),
+                        borderColor: palette[index].border,
+                        backgroundColor: palette[index].background,
+                        borderWidth: index === 0 ? 3 : 2,
+                        pointBackgroundColor: palette[index].border,
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 1,
+                        pointRadius: index === 0 ? 4 : 3,
+                        pointHoverRadius: 6,
+                        team
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 650,
+                        easing: "easeOutQuart"
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: "rgba(255,255,255,0.82)",
+                                usePointStyle: true,
+                                boxWidth: 9,
+                                boxHeight: 9
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => {
+                                    const team = items[0].dataset.team;
+                                    return "Team " + team.rank_position + " · " + Math.round(team.performance_score) + "% performance";
+                                },
+                                label: (context) => {
+                                    const suffix = context.label === "risk_score" ? "% (lower is better)" : "%";
+                                    return context.label + ": " + context.formattedValue + suffix;
+                                },
+                                afterBody: (items) => {
+                                    const members = items[0].dataset.team.team_members || [];
+                                    return members.map((member) => member.name + " · " + member.role);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            angleLines: { color: "rgba(255,255,255,0.15)" },
+                            grid: { color: "rgba(255,255,255,0.09)" },
+                            pointLabels: {
+                                color: "rgba(255,255,255,0.82)",
+                                font: { size: 12, weight: "600" }
+                            },
+                            ticks: {
+                                backdropColor: "transparent",
+                                color: "rgba(255,255,255,0.52)",
+                                stepSize: 20,
+                                showLabelBackdrop: false
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         async function loadTeams() {
@@ -100,13 +284,21 @@
             teamGrid.innerHTML = "";
 
             try {
+                renderTeamMap([]);
+                const selectedProject = projectNameInput.value.trim();
+
+                if (!selectedProject) {
+                    generatorStatus.textContent = "No candidate projects available.";
+                    return;
+                }
+
                 const response = await fetch("/recruiter/generator.html", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        project_name: projectNameInput.value.trim() || "Revenue Insights",
+                        project_name: selectedProject,
                         role: "All roles",
                         team_size: 6
                     })
@@ -118,9 +310,13 @@
                     throw new Error(data.detail || "Team generation failed.");
                 }
 
-                data.teams.forEach(renderTeam);
-                generatorStatus.textContent = data.teams.length
-                    ? "Generated " + data.teams.length + " recommended teams."
+                const teams = data.teams || [];
+                const teamMap = data.team_map || [];
+
+                renderTeamMap(teamMap);
+                teams.forEach(renderTeam);
+                generatorStatus.textContent = teamMap.length
+                    ? "Generated " + teamMap.length + " teams and highlighted top 3."
                     : "No teams were generated.";
             } catch (error) {
                 generatorStatus.textContent = error.message;
