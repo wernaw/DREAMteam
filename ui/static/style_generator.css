@@ -71,6 +71,99 @@ body {
     background: rgba(214,224,255,0.58);
 }
 
+.map-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.compare-menu {
+    position: relative;
+    text-align: left;
+}
+
+.compare-menu summary {
+    min-width: 154px;
+    padding: 8px 10px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.84);
+    cursor: pointer;
+    font-size: 13px;
+    list-style: none;
+}
+
+.compare-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.compare-menu summary::after {
+    content: "▾";
+    float: right;
+    color: rgba(255,255,255,0.58);
+}
+
+.compare-menu[open] summary::after {
+    content: "▴";
+}
+
+.compare-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 12;
+    width: 280px;
+    max-height: 300px;
+    overflow: auto;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px;
+    background: #171a2c;
+    box-shadow: 0 20px 42px rgba(0,0,0,0.34);
+}
+
+.compare-options label {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    color: rgba(255,255,255,0.82);
+    font-size: 13px;
+}
+
+.compare-options label:hover {
+    background: rgba(255,255,255,0.07);
+}
+
+.compare-options input {
+    margin: 0;
+    accent-color: #36d399;
+}
+
+.compare-options span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.compare-options small {
+    color: rgba(255,255,255,0.56);
+    font-size: 12px;
+}
+
+.compare-empty {
+    margin: 0;
+    padding: 8px;
+    color: rgba(255,255,255,0.58);
+    font-size: 13px;
+}
+
 .map-canvas-wrap {
     position: relative;
     height: 420px;
@@ -540,6 +633,17 @@ button {
 
     .legend {
         flex-wrap: wrap;
+    }
+
+    .map-header-actions {
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .compare-options {
+        left: 0;
+        right: auto;
+        width: min(280px, calc(100vw - 56px));
     }
 
     .team-map-panel {

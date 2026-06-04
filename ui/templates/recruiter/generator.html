@@ -63,9 +63,15 @@
                     <h2>Feature map</h2>
                     <span id="teamMapCount" class="section-meta">0 teams</span>
                 </div>
-                <div class="legend" aria-hidden="true">
-                    <span><i class="legend-dot top"></i>Best team</span>
-                    <span><i class="legend-dot standard"></i>Other top teams</span>
+                <div class="map-header-actions">
+                    <div class="legend" aria-hidden="true">
+                        <span><i class="legend-dot top"></i>Best team</span>
+                        <span><i class="legend-dot standard"></i>Compared teams</span>
+                    </div>
+                    <details id="teamCompareMenu" class="compare-menu">
+                        <summary id="teamCompareSummary">Generate teams first</summary>
+                        <div id="teamCompareOptions" class="compare-options"></div>
+                    </details>
                 </div>
             </div>
             <div class="map-canvas-wrap">
@@ -104,7 +110,11 @@
         const projectNameInput = document.getElementById("projectName");
         const teamMapCount = document.getElementById("teamMapCount");
         const teamMapCanvas = document.getElementById("teamMapChart");
+        const teamCompareSummary = document.getElementById("teamCompareSummary");
+        const teamCompareOptions = document.getElementById("teamCompareOptions");
         let teamMapChart;
+        let selectedTeamKeys = new Set();
+        let currentTeamMap = [];
 
         function escapeHtml(value) {
             return String(value || "")
@@ -166,19 +176,98 @@
             ];
         }
 
-        function renderTeamMap(teamMap) {
-            const topTeams = teamMap
+        function sortedTeamMap(teamMap) {
+            return teamMap
                 .slice()
-                .sort((firstTeam, secondTeam) => (firstTeam.rank_position || 999) - (secondTeam.rank_position || 999))
-                .slice(0, 3);
+                .sort((firstTeam, secondTeam) => (firstTeam.rank_position || 999) - (secondTeam.rank_position || 999));
+        }
+
+        function teamKey(team, index) {
+            return String(team.team_score_id || team.rank_position || index + 1);
+        }
+
+        function teamLabel(team, index = 0) {
+            return "Team " + (team.rank_position || index + 1);
+        }
+
+        function chartPalette(index) {
             const palette = [
                 { border: "#36d399", background: "rgba(54, 211, 153, 0.18)" },
                 { border: "#2fa6ff", background: "rgba(47, 166, 255, 0.14)" },
-                { border: "#ffbd59", background: "rgba(255, 189, 89, 0.13)" }
+                { border: "#ffbd59", background: "rgba(255, 189, 89, 0.13)" },
+                { border: "#ff6b9a", background: "rgba(255, 107, 154, 0.11)" },
+                { border: "#b8a8ff", background: "rgba(184, 168, 255, 0.11)" },
+                { border: "#57e3e8", background: "rgba(87, 227, 232, 0.1)" },
+                { border: "#f47cff", background: "rgba(244, 124, 255, 0.1)" },
+                { border: "#9ee37d", background: "rgba(158, 227, 125, 0.1)" }
             ];
 
-            teamMapCount.textContent = teamMap.length
-                ? teamMap.length + " teams · showing top " + topTeams.length
+            return palette[index % palette.length];
+        }
+
+        function updateTeamCompareSummary(selectedCount, totalCount) {
+            if (!totalCount) {
+                teamCompareSummary.textContent = "Generate teams first";
+                return;
+            }
+
+            teamCompareSummary.textContent = selectedCount
+                ? "Compare " + selectedCount + " of " + totalCount
+                : "Choose teams";
+        }
+
+        function toggleComparedTeam(input) {
+            if (input.checked) {
+                selectedTeamKeys.add(input.value);
+            } else {
+                selectedTeamKeys.delete(input.value);
+            }
+
+            renderTeamMap(currentTeamMap);
+        }
+
+        function renderTeamCompareOptions(sortedTeams) {
+            if (!sortedTeams.length) {
+                teamCompareOptions.innerHTML = "<p class='compare-empty'>Generate teams to compare them.</p>";
+                updateTeamCompareSummary(0, 0);
+                return;
+            }
+
+            teamCompareOptions.innerHTML = sortedTeams.map((team, index) => {
+                const key = teamKey(team, index);
+                const checked = selectedTeamKeys.has(key) ? "checked" : "";
+                const label = teamLabel(team, index);
+                const score = metricPercent(team.performance_score);
+
+                return "<label>" +
+                    "<input type='checkbox' value='" + escapeHtml(key) + "' onchange='toggleComparedTeam(this)' " + checked + ">" +
+                    "<span>" + escapeHtml(label) + "</span>" +
+                    "<small>" + score + "%</small>" +
+                "</label>";
+            }).join("");
+        }
+
+        function selectedTeams(sortedTeams) {
+            return sortedTeams.filter((team, index) => selectedTeamKeys.has(teamKey(team, index)));
+        }
+
+        function renderTeamMap(teamMap, resetSelection = false) {
+            currentTeamMap = teamMap;
+
+            const sortedTeams = sortedTeamMap(teamMap);
+
+            if (resetSelection) {
+                selectedTeamKeys = new Set(
+                    sortedTeams.slice(0, 3).map((team, index) => teamKey(team, index))
+                );
+            }
+
+            const comparedTeams = selectedTeams(sortedTeams);
+
+            renderTeamCompareOptions(sortedTeams);
+            updateTeamCompareSummary(comparedTeams.length, sortedTeams.length);
+            teamMapCount.textContent = sortedTeams.length
+                ? comparedTeams.length + " selected of " + sortedTeams.length + " teams"
                 : "0 teams";
 
             if (typeof Chart === "undefined") {
@@ -193,7 +282,7 @@
 
             teamMapChart = null;
 
-            if (!topTeams.length) {
+            if (!comparedTeams.length) {
                 return;
             }
 
@@ -207,19 +296,23 @@
                         "delivery_score",
                         "risk_score"
                     ],
-                    datasets: topTeams.map((team, index) => ({
-                        label: "Team " + (team.rank_position || index + 1),
-                        data: teamFeatureValues(team),
-                        borderColor: palette[index].border,
-                        backgroundColor: palette[index].background,
-                        borderWidth: index === 0 ? 3 : 2,
-                        pointBackgroundColor: palette[index].border,
-                        pointBorderColor: "#ffffff",
-                        pointBorderWidth: 1,
-                        pointRadius: index === 0 ? 4 : 3,
-                        pointHoverRadius: 6,
-                        team
-                    }))
+                    datasets: comparedTeams.map((team, index) => {
+                        const colors = chartPalette(index);
+
+                        return {
+                            label: teamLabel(team),
+                            data: teamFeatureValues(team),
+                            borderColor: colors.border,
+                            backgroundColor: colors.background,
+                            borderWidth: index === 0 ? 3 : 2,
+                            pointBackgroundColor: colors.border,
+                            pointBorderColor: "#ffffff",
+                            pointBorderWidth: 1,
+                            pointRadius: index === 0 ? 4 : 3,
+                            pointHoverRadius: 6,
+                            team
+                        };
+                    })
                 },
                 options: {
                     responsive: true,
@@ -242,7 +335,7 @@
                             callbacks: {
                                 title: (items) => {
                                     const team = items[0].dataset.team;
-                                    return "Team " + team.rank_position + " · " + Math.round(team.performance_score) + "% performance";
+                                    return teamLabel(team) + " · " + metricPercent(team.performance_score) + "% performance";
                                 },
                                 label: (context) => {
                                     const suffix = context.label === "risk_score" ? "% (lower is better)" : "%";
@@ -284,7 +377,7 @@
             teamGrid.innerHTML = "";
 
             try {
-                renderTeamMap([]);
+                renderTeamMap([], true);
                 const selectedProject = projectNameInput.value.trim();
 
                 if (!selectedProject) {
@@ -313,10 +406,10 @@
                 const teams = data.teams || [];
                 const teamMap = data.team_map || [];
 
-                renderTeamMap(teamMap);
+                renderTeamMap(teamMap, true);
                 teams.forEach(renderTeam);
                 generatorStatus.textContent = teamMap.length
-                    ? "Generated " + teamMap.length + " teams and highlighted top 3."
+                    ? "Generated " + teamMap.length + " teams. Select teams in Feature map to compare."
                     : "No teams were generated.";
             } catch (error) {
                 generatorStatus.textContent = error.message;
