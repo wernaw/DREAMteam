@@ -167,7 +167,7 @@ async def generator(
             max_candidates_per_role=2,
             save_to_database=True,
             benchmark_limit=10,
-            simulation_runs=4,
+            simulation_runs=5,
             project_name=data.project_name,
             include_team_map=True,
         )

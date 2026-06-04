@@ -714,6 +714,17 @@ def add_generation_metadata(ranked_teams, project_name):
         team_result["generation_created_at"] = created_at
 
 
+def team_ranking_key(team_result):
+    return (
+        team_result.get("performance_score", 0),
+        team_result.get("delivery_score", 0),
+        -team_result.get("risk_score", 1),
+        team_result.get("collaboration_score", 0),
+        team_result.get("communication_score", 0),
+        team_result.get("confidence_score", 0),
+    )
+
+
 def save_ranked_teams(ranked_teams):
     for team_result in ranked_teams:
         team_score_id = save_team_score_to_database(team_result)
@@ -784,10 +795,7 @@ def form_and_rank_teams(
         parallel_workers=parallel_workers,
     )
 
-    ranked_teams.sort(
-        key=lambda team_result: team_result["performance_score"],
-        reverse=True,
-    )
+    ranked_teams.sort(key=team_ranking_key, reverse=True)
     add_team_map_data(ranked_teams)
     add_generation_metadata(ranked_teams, project_name)
 
