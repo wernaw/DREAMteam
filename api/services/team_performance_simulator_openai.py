@@ -1,5 +1,6 @@
 import json
 import itertools
+import uuid
 import os
 import sqlite3
 import logging
@@ -7,11 +8,12 @@ import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from functools import partial
 from pathlib import Path
 from threading import Lock
+from zoneinfo import ZoneInfo
 
-import numpy as np
 from dotenv import load_dotenv
 
 from api.data.project_benchmarks import PROJECT_BENCHMARKS
@@ -21,6 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(PROJECT_ROOT / ".env")
 
 logger = logging.getLogger("uvicorn.error")
+LOCAL_TIMEZONE = ZoneInfo("Europe/Warsaw")
 
 
 def env_int(name, default):
@@ -60,9 +63,9 @@ TEAM_VECTOR_KEYS = [
 
 TEAM_SCORE_EXTRA_COLUMNS = {
     "project_name": "TEXT",
+    "generation_id": "TEXT",
+    "generation_created_at": "TEXT",
     "team_vector": "TEXT",
-    "projection_x": "REAL",
-    "projection_y": "REAL",
     "rank_position": "INTEGER",
 }
 
@@ -153,6 +156,8 @@ def save_team_score_to_database(team_result):
 
     simulation_summary = {
         "project_name": team_result.get("project_name"),
+        "generation_id": team_result.get("generation_id"),
+        "generation_created_at": team_result.get("generation_created_at"),
         "strengths": team_result.get("strengths", []),
         "risks": team_result.get("risks", []),
         "benchmark_analysis": team_result.get("benchmark_analysis", []),
@@ -174,9 +179,9 @@ def save_team_score_to_database(team_result):
                 performance_score,
                 summary,
                 project_name,
+                generation_id,
+                generation_created_at,
                 team_vector,
-                projection_x,
-                projection_y,
                 rank_position
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -186,9 +191,9 @@ def save_team_score_to_database(team_result):
                 team_result["performance_score"],
                 json.dumps(simulation_summary),
                 team_result.get("project_name"),
+                team_result.get("generation_id"),
+                team_result.get("generation_created_at"),
                 json.dumps(team_result.get("team_vector", {})),
-                team_result.get("projection_x"),
-                team_result.get("projection_y"),
                 team_result.get("rank_position"),
             ),
         )
@@ -682,65 +687,31 @@ def build_team_vector(team_result):
     }
 
 
-def team_vector_for_pca(team_result):
-    vector = team_result["team_vector"]
-
-    return [
-        vector["performance_score"] / 100,
-        vector["collaboration_score"],
-        vector["communication_score"],
-        vector["delivery_score"],
-        vector["risk_score"],
-    ]
-
-
-def normalized_axis(values):
-    minimum = float(np.min(values))
-    maximum = float(np.max(values))
-    span = maximum - minimum
-
-    if span == 0:
-        return [50.0 for _ in values]
-
-    return [round(((float(value) - minimum) / span) * 100, 2) for value in values]
-
-
-def calculate_pca_projection(ranked_teams):
-    if not ranked_teams:
-        return []
-
-    if len(ranked_teams) == 1:
-        return [(50.0, 50.0)]
-
-    matrix = np.array([team_vector_for_pca(team) for team in ranked_teams], dtype=float)
-    standard_deviation = matrix.std(axis=0)
-    standard_deviation[standard_deviation == 0] = 1
-    scaled_matrix = (matrix - matrix.mean(axis=0)) / standard_deviation
-
-    covariance = np.cov(scaled_matrix, rowvar=False)
-    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
-    order = np.argsort(eigenvalues)[::-1]
-    components = eigenvectors[:, order[:2]]
-
-    projection = scaled_matrix @ components
-    x_values = normalized_axis(projection[:, 0])
-    y_values = normalized_axis(projection[:, 1])
-
-    return list(zip(x_values, y_values, strict=False))
-
-
 def add_team_map_data(ranked_teams):
     for rank, team_result in enumerate(ranked_teams, start=1):
         team_result["rank_position"] = rank
         team_result["team_vector"] = build_team_vector(team_result)
 
-    for team_result, (x_value, y_value) in zip(
-        ranked_teams,
-        calculate_pca_projection(ranked_teams),
-        strict=False,
-    ):
-        team_result["projection_x"] = x_value
-        team_result["projection_y"] = y_value
+
+def generation_metadata(project_name):
+    now = datetime.now(LOCAL_TIMEZONE)
+    created_at = now.isoformat(timespec="seconds")
+    timestamp = now.strftime("%Y%m%dT%H%M%S") + "-pl"
+    project_part = "".join(
+        character if character.isalnum() else "-"
+        for character in (project_name or "project").lower()
+    ).strip("-")
+    generation_id = f"{project_part or 'project'}-{timestamp}-{uuid.uuid4().hex[:8]}"
+
+    return generation_id, created_at
+
+
+def add_generation_metadata(ranked_teams, project_name):
+    generation_id, created_at = generation_metadata(project_name)
+
+    for team_result in ranked_teams:
+        team_result["generation_id"] = generation_id
+        team_result["generation_created_at"] = created_at
 
 
 def save_ranked_teams(ranked_teams):
@@ -752,6 +723,8 @@ def save_ranked_teams(ranked_teams):
 def top_team_response(team_result):
     return {
         "project_name": team_result.get("project_name"),
+        "generation_id": team_result.get("generation_id"),
+        "generation_created_at": team_result.get("generation_created_at"),
         "performance_score": team_result["performance_score"],
         "collaboration_score": team_result.get("collaboration_score"),
         "communication_score": team_result.get("communication_score"),
@@ -779,8 +752,6 @@ def team_map_response(team_result):
     return {
         **top_team_response(team_result),
         "team_score_id": team_result.get("team_score_id"),
-        "projection_x": team_result.get("projection_x", 50),
-        "projection_y": team_result.get("projection_y", 50),
         "is_top_team": team_result.get("rank_position", 0) <= 3,
     }
 
@@ -818,6 +789,7 @@ def form_and_rank_teams(
         reverse=True,
     )
     add_team_map_data(ranked_teams)
+    add_generation_metadata(ranked_teams, project_name)
 
     if save_to_database:
         save_ranked_teams(ranked_teams)
