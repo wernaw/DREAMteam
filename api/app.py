@@ -14,7 +14,7 @@ import uvicorn
 
 from api.services.chatbot import candidate_chatbot
 from api.services.team_performance_simulator_openai import form_and_rank_teams
-from api.services.project_service import add_project, get_project_names
+from api.services.project_service import get_candidate_project_names, get_project_names
 from api.services.auth_service import decode_access_token, login_user
 
 
@@ -84,7 +84,6 @@ def require_role(required_role: str):
     return checker
 
 
-# logowanie
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse(request=request, name="login.html")
@@ -109,10 +108,9 @@ def login(payload: LoginRequest):
     return response
 
 
-# rozmowa z kandydatem
 @app.get("/candidate/chat.html", response_class=HTMLResponse)
 async def candidate_chat_page(
-    request: Request, user=Depends(require_role("candidate"))
+    request: Request, _user=Depends(require_role("candidate"))
 ):
     return templates.TemplateResponse(
         request=request,
@@ -122,7 +120,7 @@ async def candidate_chat_page(
 
 
 @app.post("/api/chat")
-async def chat(req: CandidateChatRequest, user=Depends(require_role("candidate"))):
+async def chat(req: CandidateChatRequest, _user=Depends(require_role("candidate"))):
     try:
         result = candidate_chatbot(history=req.history, candidate_answer=req.message)
     except RuntimeError as error:
@@ -131,12 +129,9 @@ async def chat(req: CandidateChatRequest, user=Depends(require_role("candidate")
     return result
 
 
-# panel rekrutera
-
-
 @app.get("/recruiter/dashboard.html", response_class=HTMLResponse)
 async def recruiter_dashboard(
-    request: Request, user=Depends(require_role("recruiter"))
+    request: Request, _user=Depends(require_role("recruiter"))
 ):
     candidates = [
         {"name": "Anna", "role": "Frontend Developer"},
@@ -153,35 +148,39 @@ async def recruiter_dashboard(
 
 
 @app.get("/recruiter/generator.html", response_class=HTMLResponse)
-async def generator_page(request: Request, user=Depends(require_role("recruiter"))):
-    return templates.TemplateResponse(request=request, name="recruiter/generator.html")
+async def generator_page(request: Request, _user=Depends(require_role("recruiter"))):
+    return templates.TemplateResponse(
+        request=request,
+        name="recruiter/generator.html",
+        context={"project_options": get_candidate_project_names()},
+    )
 
 
 @app.post("/recruiter/generator.html")
 async def generator(
     data: TeamGenerationRequest,
-    user=Depends(require_role("recruiter")),
+    _user=Depends(require_role("recruiter")),
 ):
     try:
-        project_name = add_project(data.project_name)
         teams = await run_in_threadpool(
             form_and_rank_teams,
             max_candidates_per_role=2,
             save_to_database=True,
-            benchmark_limit=2,
-            simulation_runs=2,
-            project_name=project_name,
+            benchmark_limit=10,
+            simulation_runs=5,
+            project_name=data.project_name,
+            include_team_map=True,
         )
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
     except RuntimeError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
 
-    return {"teams": teams}
+    return teams
 
 
 @app.get("/recruiter/reports.html", response_class=HTMLResponse)
-async def recruiter_reports(request: Request, user=Depends(require_role("recruiter"))):
+async def recruiter_reports(request: Request, _user=Depends(require_role("recruiter"))):
     reports = [
         {
             "team": "Team Alpha",
@@ -203,7 +202,7 @@ async def recruiter_reports(request: Request, user=Depends(require_role("recruit
 
 
 @app.get("/api/reports")
-async def reports_api(user=Depends(require_role("recruiter"))):
+async def reports_api(_user=Depends(require_role("recruiter"))):
     reports = [{"team": "Team Alpha", "score": 92}, {"team": "Team Beta", "score": 85}]
 
     return {"reports": reports}
@@ -220,7 +219,7 @@ def parse_conversation_history(value):
 
 
 @app.get("/api/results")
-def get_results(user=Depends(require_role("recruiter"))):
+def get_results(_user=Depends(require_role("recruiter"))):
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
 

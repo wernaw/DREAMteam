@@ -54,3 +54,23 @@ def get_project_names():
         return [row[0] for row in cursor.fetchall()]
     finally:
         connection.close()
+
+
+def get_candidate_project_names():
+    connection = sqlite3.connect(DATABASE_PATH)
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT DISTINCT project_name
+            FROM candidate_personality_scores
+            WHERE project_name IS NOT NULL
+                AND TRIM(project_name) != ''
+            ORDER BY project_name ASC
+            """
+        )
+
+        return [row[0] for row in cursor.fetchall()]
+    finally:
+        connection.close()

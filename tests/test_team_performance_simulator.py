@@ -2,6 +2,7 @@ import json
 import sqlite3
 import pytest
 from api.services import team_performance_simulator as simulator
+from api.services.team_performance_simulator_openai import team_ranking_key
 
 
 @pytest.fixture()
@@ -276,3 +277,53 @@ def test_form_and_rank_teams_returns_top_teams_and_saves_all(
     connection.close()
 
     assert saved_rows_count == 1
+
+
+def test_team_ranking_key_breaks_performance_ties():
+    teams = [
+        {
+            "name": "higher risk",
+            "performance_score": 90,
+            "delivery_score": 0.82,
+            "risk_score": 0.45,
+            "collaboration_score": 0.8,
+            "communication_score": 0.8,
+            "confidence_score": 0.8,
+        },
+        {
+            "name": "better delivery",
+            "performance_score": 90,
+            "delivery_score": 0.9,
+            "risk_score": 0.5,
+            "collaboration_score": 0.7,
+            "communication_score": 0.7,
+            "confidence_score": 0.7,
+        },
+        {
+            "name": "lower risk",
+            "performance_score": 90,
+            "delivery_score": 0.82,
+            "risk_score": 0.2,
+            "collaboration_score": 0.75,
+            "communication_score": 0.75,
+            "confidence_score": 0.75,
+        },
+        {
+            "name": "lower performance",
+            "performance_score": 89,
+            "delivery_score": 1,
+            "risk_score": 0,
+            "collaboration_score": 1,
+            "communication_score": 1,
+            "confidence_score": 1,
+        },
+    ]
+
+    teams.sort(key=team_ranking_key, reverse=True)
+
+    assert [team["name"] for team in teams] == [
+        "better delivery",
+        "lower risk",
+        "higher risk",
+        "lower performance",
+    ]
