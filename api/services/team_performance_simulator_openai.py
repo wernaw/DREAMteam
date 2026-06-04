@@ -157,6 +157,8 @@ def save_team_score_to_database(team_result):
         "risks": team_result.get("risks", []),
         "benchmark_analysis": team_result.get("benchmark_analysis", []),
         "summary": team_result.get("summary", ""),
+        "confidence_score": team_result.get("confidence_score"),
+        "uncertainty_reason": team_result.get("uncertainty_reason", ""),
         "simulation_runs": team_result.get("simulation_runs", []),
     }
 
@@ -280,16 +282,27 @@ def simulate_team_performance(
         {
             "role": "system",
             "content": """
-You are an expert project team simulator.
+You are an expert project team simulator and evaluation analyst.
 
 Run one concrete behavioral simulation of how this team works through the provided project benchmarks.
 Do not only evaluate the static team composition. Imagine the team making decisions, communicating, reacting to pressure, resolving conflict, adapting to change, and delivering work.
 
+Use the candidate roles and Big Five personality scores as signals, not as deterministic truth. Avoid stereotyping. Explain outcomes through observable team behaviors such as coordination, decision quality, conflict handling, reliability, adaptability, and delivery discipline.
+
 For each benchmark:
 - simulate the likely behavior of the team members based on their roles and Big Five personality scores,
-- consider collaboration dynamics, communication quality, reliability, stress response, adaptability, and delivery risk,
+- consider collaboration dynamics, communication quality, reliability, stress response, adaptability, stakeholder alignment, quality discipline, and delivery risk,
 - decide what happens in this specific run,
+- identify the main positive driver and the main risk driver,
 - score the outcome for that benchmark.
+
+Scoring rubric:
+- collaboration_score: 0.0-0.3 weak cooperation or unresolved conflict; 0.4-0.6 acceptable cooperation with visible friction; 0.7-0.8 good cooperation with minor issues; 0.9-1.0 excellent mutual support and coordination.
+- communication_score: 0.0-0.3 unclear, delayed, or conflicting communication; 0.4-0.6 adequate communication with gaps; 0.7-0.8 clear communication with occasional misses; 0.9-1.0 consistently clear, timely, and well-documented communication.
+- delivery_score: 0.0-0.3 high probability of missed goals; 0.4-0.6 partial delivery with trade-offs; 0.7-0.8 reliable delivery of core scope; 0.9-1.0 strong delivery discipline and high execution confidence.
+- risk_score: 0.0-0.2 low risk; 0.3-0.5 manageable risk; 0.6-0.8 significant risk requiring mitigation; 0.9-1.0 severe team or delivery risk.
+
+Use these weights when deciding performance_score: delivery 35%, collaboration 25%, communication 20%, risk mitigation 20%. Risk mitigation means lower risk increases performance.
 
 This is one simulation run, not an average of all possible outcomes. If multiple runs are requested, each run should represent a different plausible trajectory.
 
@@ -305,6 +318,8 @@ You must include exactly these top-level keys:
 - risks
 - benchmark_analysis
 - summary
+- confidence_score
+- uncertainty_reason
 
 Do not rename keys.
 Do not wrap the JSON inside another object.
@@ -313,8 +328,10 @@ Do not include explanations outside JSON.
 
 The performance_score must be a number from 0 to 100.
 Higher means the team is more likely to perform well across all simulated benchmarks.
-The collaboration_score, communication_score, and delivery_score must be numbers from 0 to 1 where higher is better.
+The collaboration_score, communication_score, delivery_score, and confidence_score must be numbers from 0 to 1 where higher is better.
 The risk_score must be a number from 0 to 1 where higher means greater team or delivery risk.
+The confidence_score reflects how strongly the provided data supports this prediction, not how good the team is.
+The uncertainty_reason must briefly name the main limitation of the prediction.
 """,
         },
         {
@@ -333,16 +350,24 @@ The risk_score must be a number from 0 to 1 where higher means greater team or d
                         "communication_score": "number from 0 to 1",
                         "delivery_score": "number from 0 to 1",
                         "risk_score": "number from 0 to 1 where higher means greater risk",
-                        "strengths": ["string"],
-                        "risks": ["string"],
+                        "strengths": [
+                            "specific strength with evidence from roles, personality signals, or benchmark behavior"
+                        ],
+                        "risks": [
+                            "specific risk with mitigation hint or scenario where it appears"
+                        ],
                         "benchmark_analysis": [
                             {
                                 "benchmark_name": "string",
                                 "score": "number from 0 to 100",
-                                "analysis": "string describing what happened in this run",
+                                "analysis": "2-4 sentences describing what happened, why it happened, and which team behavior drove the score",
+                                "positive_driver": "main behavior or role interaction that helped",
+                                "risk_driver": "main behavior or role interaction that hurt or could hurt",
                             }
                         ],
-                        "summary": "string summarizing the simulated team behavior in this run",
+                        "summary": "2-4 sentences summarizing overall simulated behavior, key trade-offs, and the most important mitigation",
+                        "confidence_score": "number from 0 to 1 indicating prediction confidence",
+                        "uncertainty_reason": "brief explanation of the main limitation of this prediction",
                     },
                 }
             ),
@@ -366,6 +391,8 @@ The risk_score must be a number from 0 to 1 where higher means greater team or d
         "risks": result.get("risks", []),
         "benchmark_analysis": result.get("benchmark_analysis", []),
         "summary": result.get("summary", ""),
+        "confidence_score": simulation_score(result, "confidence_score"),
+        "uncertainty_reason": result.get("uncertainty_reason", ""),
     }
 
 
@@ -414,6 +441,13 @@ def average_team_vector_scores(simulations):
     }
 
 
+def average_optional_simulation_score(simulations, key, digits):
+    return round(
+        sum(simulation.get(key, 0) for simulation in simulations) / len(simulations),
+        digits,
+    )
+
+
 def aggregate_simulation_items(simulations, key):
     return unique_strings(
         item for simulation in simulations for item in simulation.get(key, [])
@@ -428,6 +462,14 @@ def aggregate_simulation_summary(simulations):
     return f"Average of {len(simulations)} simulation runs. " + " ".join(summaries)
 
 
+def aggregate_uncertainty_reason(simulations):
+    reasons = unique_strings(
+        simulation.get("uncertainty_reason", "") for simulation in simulations
+    )
+
+    return " | ".join(reasons)
+
+
 def simulation_run_response(simulation):
     return {
         "run_number": simulation["run_number"],
@@ -437,6 +479,8 @@ def simulation_run_response(simulation):
         "delivery_score": simulation["delivery_score"],
         "risk_score": simulation["risk_score"],
         "summary": simulation.get("summary", ""),
+        "confidence_score": simulation.get("confidence_score", 0),
+        "uncertainty_reason": simulation.get("uncertainty_reason", ""),
     }
 
 
@@ -452,6 +496,12 @@ def aggregate_simulations(simulations):
         "risks": aggregate_simulation_items(simulations, "risks"),
         "benchmark_analysis": aggregate_benchmark_analysis(simulations),
         "summary": aggregate_simulation_summary(simulations),
+        "confidence_score": average_optional_simulation_score(
+            simulations,
+            "confidence_score",
+            3,
+        ),
+        "uncertainty_reason": aggregate_uncertainty_reason(simulations),
         "simulation_runs": [simulation_run_response(item) for item in simulations],
     }
 
@@ -519,6 +569,8 @@ def build_ranked_team(team, selected_benchmarks, simulation_runs, project_name=N
         "risks": simulation["risks"],
         "benchmark_analysis": simulation["benchmark_analysis"],
         "summary": simulation["summary"],
+        "confidence_score": simulation.get("confidence_score", 0),
+        "uncertainty_reason": simulation.get("uncertainty_reason", ""),
         "simulation_runs": simulation["simulation_runs"],
     }
 
@@ -709,6 +761,8 @@ def top_team_response(team_result):
         "rank_position": team_result.get("rank_position"),
         "simulation_runs": team_result.get("simulation_runs", []),
         "summary": team_result.get("summary", ""),
+        "confidence_score": team_result.get("confidence_score"),
+        "uncertainty_reason": team_result.get("uncertainty_reason", ""),
         "team_members": [
             {
                 "id": candidate["id"],
