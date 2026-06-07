@@ -68,6 +68,7 @@ def get_candidates_from_database():
                 first_name,
                 surname,
                 role,
+                project_name,
                 openness,
                 conscientiousness,
                 extraversion,
@@ -135,6 +136,7 @@ def candidate_summary(candidate):
         "id": candidate["id"],
         "name": f"{candidate['first_name']} {candidate['surname']}",
         "role": candidate["role"],
+        "project_name": candidate.get("project_name"),
         "personality": {
             "openness": candidate["openness"],
             "conscientiousness": candidate["conscientiousness"],
@@ -166,35 +168,65 @@ def normalize_llm_result(result):
     return result
 
 
-def simulate_team_performance(team, project_benchmarks):
+def simulation_variation(run_number):
+    variations = [
+        "baseline delivery with normal collaboration and typical project friction",
+        "higher pressure delivery with ambiguity, interruptions, and time constraints",
+        "distributed work with asynchronous communication and slower feedback loops",
+        "changing requirements that force reprioritization and negotiation",
+        "quality-focused delivery with review pressure and defect prevention",
+    ]
+
+    return variations[(run_number - 1) % len(variations)]
+
+
+def simulate_team_performance(
+    team, project_benchmarks, run_number=1, simulation_runs=1
+):
     team_data = [candidate_summary(candidate) for candidate in team]
 
     messages = [
         {
             "role": "system",
             "content": """
-You are an expert project team evaluator.
+You are an expert project team simulator and evaluation analyst.
 
-Evaluate whether a team is well matched for project work across the provided project benchmarks.
+Run one concrete behavioral simulation of how this team works through the provided project benchmarks.
+Do not only evaluate the static team composition. Imagine the team making decisions, communicating, reacting to pressure, resolving conflict, adapting to change, and delivering work.
 
-Consider:
-- role coverage,
-- personality fit,
-- collaboration potential,
-- ability to handle pressure,
-- ability to adapt to change,
-- ability to deliver reliably,
-- benchmark conditions,
-- what each benchmark tests.
+Use the candidate roles and Big Five personality scores as signals, not as deterministic truth. Avoid stereotyping. Explain outcomes through observable team behaviors such as coordination, decision quality, conflict handling, reliability, adaptability, and delivery discipline.
+
+For each benchmark:
+- simulate the likely behavior of the team members based on their roles and Big Five personality scores,
+- consider collaboration dynamics, communication quality, reliability, stress response, adaptability, stakeholder alignment, quality discipline, and delivery risk,
+- decide what happens in this specific run,
+- identify the main positive driver and the main risk driver,
+- score the outcome for that benchmark.
+
+Scoring rubric:
+- collaboration_score: 0.0-0.3 weak cooperation or unresolved conflict; 0.4-0.6 acceptable cooperation with visible friction; 0.7-0.8 good cooperation with minor issues; 0.9-1.0 excellent mutual support and coordination.
+- communication_score: 0.0-0.3 unclear, delayed, or conflicting communication; 0.4-0.6 adequate communication with gaps; 0.7-0.8 clear communication with occasional misses; 0.9-1.0 consistently clear, timely, and well-documented communication.
+- delivery_score: 0.0-0.3 high probability of missed goals; 0.4-0.6 partial delivery with trade-offs; 0.7-0.8 reliable delivery of core scope; 0.9-1.0 strong delivery discipline and high execution confidence.
+- risk_score: 0.0-0.2 low risk; 0.3-0.5 manageable risk; 0.6-0.8 significant risk requiring mitigation; 0.9-1.0 severe team or delivery risk.
+
+Use these weights when deciding performance_score: delivery 35%, collaboration 25%, communication 20%, risk mitigation 20%. Risk mitigation means lower risk increases performance.
+
+This is one simulation run, not an average of all possible outcomes. If multiple runs are requested, each run should represent a different plausible trajectory.
 
 Return only valid JSON.
 
 You must include exactly these top-level keys:
 - performance_score
+- collaboration_score
+- communication_score
+- delivery_score
+- risk_score
 - strengths
 - risks
 - benchmark_analysis
 - summary
+- confidence_score
+- uncertainty_reason
 
 Do not rename keys.
 Do not wrap the JSON inside another object.
@@ -202,28 +234,47 @@ Do not include markdown.
 Do not include explanations outside JSON.
 
 The performance_score must be a number from 0 to 100.
-Higher means the team is more likely to perform well across all benchmarks.
+Higher means the team is more likely to perform well across all simulated benchmarks.
+The collaboration_score, communication_score, delivery_score, and confidence_score must be numbers from 0 to 1 where higher is better.
+The risk_score must be a number from 0 to 1 where higher means greater team or delivery risk.
+The confidence_score reflects how strongly the provided data supports this prediction, not how good the team is.
+The uncertainty_reason must briefly name the main limitation of the prediction.
 """,
         },
         {
             "role": "user",
             "content": json.dumps(
                 {
+                    "simulation_run": run_number,
+                    "total_simulation_runs": simulation_runs,
+                    "simulation_variation": simulation_variation(run_number),
                     "team": team_data,
                     "project_benchmarks": project_benchmarks,
                     "required_roles": REQUIRED_ROLES,
                     "output_format": {
                         "performance_score": "number from 0 to 100",
-                        "strengths": ["string"],
-                        "risks": ["string"],
+                        "collaboration_score": "number from 0 to 1",
+                        "communication_score": "number from 0 to 1",
+                        "delivery_score": "number from 0 to 1",
+                        "risk_score": "number from 0 to 1 where higher means greater risk",
+                        "strengths": [
+                            "specific strength with evidence from roles, personality signals, or benchmark behavior"
+                        ],
+                        "risks": [
+                            "specific risk with mitigation hint or scenario where it appears"
+                        ],
                         "benchmark_analysis": [
                             {
                                 "benchmark_name": "string",
                                 "score": "number from 0 to 100",
-                                "analysis": "string",
+                                "analysis": "2-4 sentences describing what happened, why it happened, and which team behavior drove the score",
+                                "positive_driver": "main behavior or role interaction that helped",
+                                "risk_driver": "main behavior or role interaction that hurt or could hurt",
                             }
                         ],
-                        "summary": "string",
+                        "summary": "2-4 sentences summarizing overall simulated behavior, key trade-offs, and the most important mitigation",
+                        "confidence_score": "number from 0 to 1 indicating prediction confidence",
+                        "uncertainty_reason": "brief explanation of the main limitation of this prediction",
                     },
                 }
             ),
