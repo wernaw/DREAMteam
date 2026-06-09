@@ -1,0 +1,136 @@
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at top, #2a2f55, #0f1220);
+    overflow: hidden;
+}
+
+body::before,
+body::after {
+    content: "";
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    filter: blur(120px);
+    opacity: 0.35;
+    z-index: 0;
+}
+
+body::before {
+    background: #6c5cff;
+    top: -100px;
+    left: -100px;
+}
+
+body::after {
+    background: #00d4ff;
+    bottom: -100px;
+    right: -100px;
+}
+
+.chat-container {
+    width: 700px;
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+.chat-header {
+    padding: 15px 20px;
+    background: rgba(190, 190, 190, 0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    text-align: center;
+    color :azure;
+}
+
+.chat-header h1 {
+    margin: 0;
+    font-size: 16px;
+}
+
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    max-width: 70%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.message.user {
+    align-self: flex-end;
+    background: #6c5cff;
+    color: white;
+}
+
+.message.bot {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: white;
+}
+
+.result {
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.chat-input {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+}
+
+.chat-input input,
+.chat-input select {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    outline: none;
+}
+
+.chat-input button {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: #6c5cff;
+    color: white;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+}

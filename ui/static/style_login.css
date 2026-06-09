@@ -1,0 +1,104 @@
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    background: radial-gradient(circle at top, #2a2f55, #0f1220);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.login-card {
+    width: 420px;
+    padding: 40px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logo {
+    width: 220px;
+    margin-top: -30px;
+    margin-bottom: 15px;
+}
+
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    text-align: center;
+}
+
+.subtitle {
+    margin: 0 0 10px 0;
+    color: #aaa;
+    text-align: center;
+}
+
+label {
+    font-size: 13px;
+    color: #bbb;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 6px;
+    margin-top: 12px;
+}
+
+input, select {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+select {
+    color: #ffffff;
+    color-scheme: dark;
+}
+
+select option {
+    color: #ffffff;
+    background-color: #1f2937;
+}
+
+button {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    width: 50%;
+}
+
+.btn-primary {
+    background: #6c5cff;
+    color: white;
+}
+
+.error-message {
+    min-height: 18px;
+    margin: 0;
+    color: #ff8a8a;
+    font-size: 13px;
+    text-align: center;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}

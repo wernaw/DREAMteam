@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Candidate Chat</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='style_chat.css') }}">
+</head>
+
+<body>
+
+<div class="chat-container">
+
+
+    <div class="chat-header">
+        <h1>Interview</h1>
+    </div>
+
+
+    <div id="chat" class="chat-messages"></div>
+
+
+    <div class="chat-input">
+        <input id="message" placeholder="Type your answer...">
+        <select id="projectSelect" hidden>
+            {% for project in project_options %}
+            <option value="{{ project }}">{{ project }}</option>
+            {% endfor %}
+        </select>
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+</div>
+
+<script>
+
+let history = [];
+
+const chatBox = document.getElementById("chat");
+const input = document.getElementById("message");
+const projectSelect = document.getElementById("projectSelect");
+
+function appendMessage(type, text) {
+    if (!text) return;
+
+    const messageElement = document.createElement("div");
+    messageElement.className = "message " + type;
+    messageElement.textContent = text;
+    chatBox.appendChild(messageElement);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function callChatbot(message = null) {
+    const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            history: history,
+            message: message
+        })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.detail || "Chatbot request failed.");
+    }
+
+    history = data.history;
+    appendMessage("bot", data.question);
+
+    const projectOptions = data.project_options || [];
+    projectSelect.hidden = projectOptions.length === 0;
+    input.hidden = projectOptions.length > 0;
+
+    if (projectOptions.length > 0) {
+        projectSelect.innerHTML = projectOptions
+            .map((project) => "<option value='" + project + "'>" + project + "</option>")
+            .join("");
+    }
+
+    if (data.is_finished) {
+        input.disabled = true;
+        projectSelect.disabled = true;
+    }
+}
+
+async function sendMessage() {
+    const isSelectingProject = !projectSelect.hidden;
+    const message = isSelectingProject ? projectSelect.value : input.value;
+
+    if (!message.trim()) return;
+
+    appendMessage("user", message);
+    input.value = "";
+
+    try {
+        await callChatbot(message);
+    } catch (error) {
+        appendMessage("bot", error.message);
+    }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    callChatbot().catch((error) => appendMessage("bot", error.message));
+});
+
+</script>
+
+</body>
+</html>

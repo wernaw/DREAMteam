@@ -1,0 +1,26 @@
+[project]
+name = "dreamteam"
+version = "0.1.0"
+description = "Intelligent AI system for the optimal selection of project teams based on the analysis of candidates' personalities."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bcrypt==4.0.1",
+    "fastapi>=0.136.1",
+    "jinja2>=3.1.6",
+    "matplotlib>=3.10.9",
+    "ollama>=0.6.2",
+    "pandas>=3.0.3",
+    "passlib>=1.7.4",
+    "pre-commit>=4.6.0",
+    "pydantic>=2.13.4",
+    "pytest>=9.0.3",
+    "python-jose>=3.5.0",
+    "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "seaborn>=0.13.2",
+    "sentence-transformers>=5.5.0",
+    "uvicorn>=0.47.0",
+    "python-multipart>=0.0.29",
+    "notebook>=7.5.6",
+]

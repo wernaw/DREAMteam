@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='style_login.css') }}">
+</head>
+
+<body>
+
+<div class="login-wrapper">
+
+    <div class="login-card">
+        <img
+                src="{{ url_for('static', path='img/logo_DREAMteam_białe_obraz.png') }}"
+                alt="DreamTeam"
+                class="logo">
+
+        <h1>Welcome to DREAMteam</h1>
+        <p class="subtitle">Sign in to continue</p>
+
+        <label>Login</label>
+        <input id="login" type="text" placeholder="email@example.com">
+
+        <label>Password</label>
+        <input id="password" type="password" placeholder="••••••••">
+
+        <label>Role</label>
+        <select id="role">
+            <option value="candidate">Candidate</option>
+            <option value="recruiter">Recruiter</option>
+        </select>
+
+        <p id="login-error" class="error-message" aria-live="polite"></p>
+
+        <button id="login-button" class="btn-primary" onclick="zaloguj()">
+            Login
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+async function zaloguj() {
+    const username = document.getElementById("login").value.trim();
+    const password = document.getElementById("password").value;
+    const selectedRole = document.getElementById("role").value;
+    const errorElement = document.getElementById("login-error");
+    const button = document.getElementById("login-button");
+
+    errorElement.textContent = "";
+    button.disabled = true;
+    button.textContent = "Logging in...";
+
+    try {
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Invalid username or password.");
+        }
+
+        const data = await response.json();
+
+        if (data.role !== selectedRole) {
+            throw new Error("Selected role does not match this account.");
+        }
+
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("token_type", data.token_type);
+        localStorage.setItem("role", data.role);
+
+        if (data.role === "candidate") {
+            window.location.href = "/candidate/chat.html";
+        } else if (data.role === "recruiter") {
+            window.location.href = "/recruiter/dashboard.html";
+        }
+    } catch (error) {
+        errorElement.textContent = error.message;
+    } finally {
+        button.disabled = false;
+        button.textContent = "Login";
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reports</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='style_reports.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="brand">
+
+            <img
+                src="{{ url_for('static', path='img/logo_DREAMteam_białe.png') }}"
+                alt="DreamTeam"
+                class="logo">
+
+            <div class="brand-info">
+                <div class="brand-text">AI RECRUITMENT PLATFORM</div>
+                <div class="page-title">Reports</div>
+            </div>
+
+    </div> 
+
+    <h1>Team Personality Distribution</h1>
+
+    <table>
+        <tbody id="teamSummary"></tbody>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Candidate</th>
+                <th>Role</th>
+                <th>Openness</th>
+                <th>Conscientiousness</th>
+                <th>Extraversion</th>
+                <th>Agreeableness</th>
+                <th>Neuroticism</th>
+                <th>Answers</th>
+            </tr>
+        </thead>
+        <tbody id="reports"></tbody>
+    </table>
+
+    <div class="table-footer">
+            <button class="btn-primary" onclick="window.location.href='/recruiter/dashboard.html'">Back to Dashboard</button>
+    </div>
+
+</div>
+
+<script>
+async function loadReports() {
+    const res = await fetch("/api/results");
+    const data = await res.json();
+
+    let html = "";
+
+    for (let i = 0; i < data.length; i++) {
+        const c = data[i];
+
+        let answersHtml = "";
+
+        if (c.history) {
+            for (let j = 0; j < c.history.length; j++) {
+                const h = c.history[j];
+
+                answersHtml += `
+                    <div class="answer">
+                        <b>${h.role || ""}:</b> ${h.content || ""}
+                    </div>
+                `;
+            }
+        }
+
+        html += `
+            <tr>
+                <td>${c.id ?? ""}</td>
+                <td>${c.name ?? ""}</td>
+                <td>${c.role ?? ""}</td>
+                <td>${c.personality?.openness ?? ""}</td>
+                <td>${c.personality?.conscientiousness ?? ""}</td>
+                <td>${c.personality?.extraversion ?? ""}</td>
+                <td>${c.personality?.agreeableness ?? ""}</td>
+                <td>${c.personality?.neuroticism ?? ""}</td>
+                <td>
+                    <details>
+                        <summary>Show answers</summary>
+                        <div class="answers-box">
+                            ${answersHtml}
+                        </div>
+                    </details>
+                </td>
+            </tr>
+        `;
+    }
+
+    document.getElementById("reports").innerHTML = html;
+}
+
+loadReports();
+</script>
+    
+</body>
+</html>

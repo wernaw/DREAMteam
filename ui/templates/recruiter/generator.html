@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Generator</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='style_generator.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="brand">
+
+            <img
+                src="{{ url_for('static', path='img/logo_DREAMteam_białe.png') }}"
+                alt="DreamTeam"
+                class="logo">
+
+            <div class="brand-info">
+                <div class="brand-text">AI RECRUITMENT PLATFORM</div>
+                <div class="page-title">Generator</div>
+            </div>
+
+        </div> 
+    </div>
+
+    <div class="generator-controls">
+        <label>
+            Project name
+            <select id="projectName">
+                {% for project_name in project_options %}
+                    <option value="{{ project_name }}">{{ project_name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button id="generateButton" onclick="loadTeams()" {% if not project_options %}disabled{% endif %}>Generate team</button>
+    </div>
+    <p id="generatorStatus" class="status"></p>
+
+    <div id="generationLoader" class="generation-loader" hidden aria-live="polite">
+        <div class="collab-scene" aria-hidden="true">
+            <div class="connection-line line-one"></div>
+            <div class="connection-line line-two"></div>
+            <div class="shared-board">
+                <div class="board-row row-one"></div>
+                <div class="board-row row-two"></div>
+                <div class="board-row row-three"></div>
+            </div>
+            <div class="work-card card-one"></div>
+            <div class="work-card card-two"></div>
+            <div class="person person-left">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm"></div>
+            </div>
+            <div class="person person-center">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm"></div>
+            </div>
+            <div class="person person-right">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="team-container">
+
+        <section class="team-map-panel">
+            <div class="section-header">
+                <div>
+                    <h2>Feature map</h2>
+                    <span id="teamMapCount" class="section-meta">0 teams</span>
+                </div>
+                <div class="map-header-actions">
+                    <div class="legend" aria-hidden="true">
+                        <span><i class="legend-dot top"></i>Best team</span>
+                        <span><i class="legend-dot standard"></i>Compared teams</span>
+                    </div>
+                    <details id="teamCompareMenu" class="compare-menu">
+                        <summary id="teamCompareSummary">Generate teams first</summary>
+                        <div id="teamCompareOptions" class="compare-options"></div>
+                    </details>
+                </div>
+            </div>
+            <div class="map-canvas-wrap">
+                <canvas id="teamMapChart"></canvas>
+            </div>
+        </section>
+
+        <div class="section-header top-team-header">
+            <div>
+                <h2>Top 3</h2>
+                <span class="section-meta">Recommended teams</span>
+            </div>
+        </div>
+
+        <div class="score-legend" aria-label="Team score legend">
+            <span><b>C</b> Collaboration</span>
+            <span><b>M</b> Communication</span>
+            <span><b>D</b> Delivery</span>
+            <span><b>R</b> Risk <small>lower is better</small></span>
+        </div>
+
+        <div id="teamGrid" class="team-grid"></div>
+
+        <div class="actions">
+            <button class="btn-outline" onclick="window.location.href='/recruiter/reports.html'">Reports</button>
+            <button class="btn-primary" onclick="saveTeams()">Save</button>
+        </div>
+
+    </div>
+
+    <script>
+        const generateButton = document.getElementById("generateButton");
+        const generatorStatus = document.getElementById("generatorStatus");
+        const generationLoader = document.getElementById("generationLoader");
+        const teamGrid = document.getElementById("teamGrid");
+        const projectNameInput = document.getElementById("projectName");
+        const teamMapCount = document.getElementById("teamMapCount");
+        const teamMapCanvas = document.getElementById("teamMapChart");
+        const teamCompareSummary = document.getElementById("teamCompareSummary");
+        const teamCompareOptions = document.getElementById("teamCompareOptions");
+        let teamMapChart;
+        let selectedTeamKeys = new Set();
+        let currentTeamMap = [];
+        let generatedTeams = [];
+
+        function escapeHtml(value) {
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function percent(value, scale = 1) {
+            return Math.round((Number(value) || 0) * scale);
+        }
+
+        function renderTeam(team, index) {
+            const card = document.createElement("div");
+            card.className = index === 0 ? "card active" : "card small";
+
+            const score = Math.round(Number(team.performance_score) || 0);
+            const members = team.team_members || [];
+            const runs = team.simulation_runs || [];
+
+            card.innerHTML =
+                "<div class='percent'>" + score + "%</div>" +
+                "<div class='team-title'>Team " + (team.rank_position || index + 1) + "</div>" +
+                "<div class='run-count'>Runs: " + runs.length + "</div>" +
+                "<div class='score-strip'>" +
+                    "<span>C " + percent(team.collaboration_score, 100) + "</span>" +
+                    "<span>M " + percent(team.communication_score, 100) + "</span>" +
+                    "<span>D " + percent(team.delivery_score, 100) + "</span>" +
+                    "<span>R " + percent(team.risk_score, 100) + "</span>" +
+                "</div>" +
+                "<div class='member-list'>" +
+                    members.map((member) =>
+                        "<div class='member'>" +
+                            "<span>" + escapeHtml(member.name) + "</span>" +
+                            "<small>" + escapeHtml(member.role) + "</small>" +
+                        "</div>"
+                    ).join("") +
+                "</div>";
+
+            teamGrid.appendChild(card);
+        }
+
+        function metricPercent(value) {
+            const numericValue = Number(value) || 0;
+            const scaledValue = Math.abs(numericValue) <= 1 ? numericValue * 100 : numericValue;
+
+            return Math.round(scaledValue);
+        }
+
+        function teamFeatureValues(team) {
+            return [
+                metricPercent(team.performance_score),
+                metricPercent(team.collaboration_score),
+                metricPercent(team.communication_score),
+                metricPercent(team.delivery_score),
+                metricPercent(team.risk_score)
+            ];
+        }
+
+        function sortedTeamMap(teamMap) {
+            return teamMap
+                .slice()
+                .sort((firstTeam, secondTeam) => (firstTeam.rank_position || 999) - (secondTeam.rank_position || 999));
+        }
+
+        function teamKey(team, index) {
+            return String(team.team_score_id || team.rank_position || index + 1);
+        }
+
+        function teamLabel(team, index = 0) {
+            return "Team " + (team.rank_position || index + 1);
+        }
+
+        function chartPalette(index) {
+            const palette = [
+                { border: "#36d399", background: "rgba(54, 211, 153, 0.18)" },
+                { border: "#2fa6ff", background: "rgba(47, 166, 255, 0.14)" },
+                { border: "#ffbd59", background: "rgba(255, 189, 89, 0.13)" },
+                { border: "#ff6b9a", background: "rgba(255, 107, 154, 0.11)" },
+                { border: "#b8a8ff", background: "rgba(184, 168, 255, 0.11)" },
+                { border: "#57e3e8", background: "rgba(87, 227, 232, 0.1)" },
+                { border: "#f47cff", background: "rgba(244, 124, 255, 0.1)" },
+                { border: "#9ee37d", background: "rgba(158, 227, 125, 0.1)" }
+            ];
+
+            return palette[index % palette.length];
+        }
+
+        function updateTeamCompareSummary(selectedCount, totalCount) {
+            if (!totalCount) {
+                teamCompareSummary.textContent = "Generate teams first";
+                return;
+            }
+
+            teamCompareSummary.textContent = selectedCount
+                ? "Compare " + selectedCount + " of " + totalCount
+                : "Choose teams";
+        }
+
+        function toggleComparedTeam(input) {
+            if (input.checked) {
+                selectedTeamKeys.add(input.value);
+            } else {
+                selectedTeamKeys.delete(input.value);
+            }
+
+            renderTeamMap(currentTeamMap);
+        }
+
+        function renderTeamCompareOptions(sortedTeams) {
+            if (!sortedTeams.length) {
+                teamCompareOptions.innerHTML = "<p class='compare-empty'>Generate teams to compare them.</p>";
+                updateTeamCompareSummary(0, 0);
+                return;
+            }
+
+            teamCompareOptions.innerHTML = sortedTeams.map((team, index) => {
+                const key = teamKey(team, index);
+                const checked = selectedTeamKeys.has(key) ? "checked" : "";
+                const label = teamLabel(team, index);
+                const score = metricPercent(team.performance_score);
+
+                return "<label>" +
+                    "<input type='checkbox' value='" + escapeHtml(key) + "' onchange='toggleComparedTeam(this)' " + checked + ">" +
+                    "<span>" + escapeHtml(label) + "</span>" +
+                    "<small>" + score + "%</small>" +
+                "</label>";
+            }).join("");
+        }
+
+        function selectedTeams(sortedTeams) {
+            return sortedTeams.filter((team, index) => selectedTeamKeys.has(teamKey(team, index)));
+        }
+
+        function renderTeamMap(teamMap, resetSelection = false) {
+            currentTeamMap = teamMap;
+
+            const sortedTeams = sortedTeamMap(teamMap);
+
+            if (resetSelection) {
+                selectedTeamKeys = new Set(
+                    sortedTeams.slice(0, 3).map((team, index) => teamKey(team, index))
+                );
+            }
+
+            const comparedTeams = selectedTeams(sortedTeams);
+
+            renderTeamCompareOptions(sortedTeams);
+            updateTeamCompareSummary(comparedTeams.length, sortedTeams.length);
+            teamMapCount.textContent = sortedTeams.length
+                ? comparedTeams.length + " selected of " + sortedTeams.length + " teams"
+                : "0 teams";
+
+            if (typeof Chart === "undefined") {
+                return;
+            }
+
+            const existingChart = Chart.getChart(teamMapCanvas);
+
+            if (existingChart) {
+                existingChart.destroy();
+            }
+
+            teamMapChart = null;
+
+            if (!comparedTeams.length) {
+                return;
+            }
+
+            teamMapChart = new Chart(teamMapCanvas, {
+                type: "radar",
+                data: {
+                    labels: [
+                        "performance_score",
+                        "collaboration_score",
+                        "communication_score",
+                        "delivery_score",
+                        "risk_score"
+                    ],
+                    datasets: comparedTeams.map((team, index) => {
+                        const colors = chartPalette(index);
+
+                        return {
+                            label: teamLabel(team),
+                            data: teamFeatureValues(team),
+                            borderColor: colors.border,
+                            backgroundColor: colors.background,
+                            borderWidth: index === 0 ? 3 : 2,
+                            pointBackgroundColor: colors.border,
+                            pointBorderColor: "#ffffff",
+                            pointBorderWidth: 1,
+                            pointRadius: index === 0 ? 4 : 3,
+                            pointHoverRadius: 6,
+                            team
+                        };
+                    })
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 650,
+                        easing: "easeOutQuart"
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: "rgba(255,255,255,0.82)",
+                                usePointStyle: true,
+                                boxWidth: 9,
+                                boxHeight: 9
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => {
+                                    const team = items[0].dataset.team;
+                                    return teamLabel(team) + " · " + metricPercent(team.performance_score) + "% performance";
+                                },
+                                label: (context) => {
+                                    const suffix = context.label === "risk_score" ? "% (lower is better)" : "%";
+                                    return context.label + ": " + context.formattedValue + suffix;
+                                },
+                                afterBody: (items) => {
+                                    const members = items[0].dataset.team.team_members || [];
+                                    return members.map((member) => member.name + " · " + member.role);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            angleLines: { color: "rgba(255,255,255,0.15)" },
+                            grid: { color: "rgba(255,255,255,0.09)" },
+                            pointLabels: {
+                                color: "rgba(255,255,255,0.82)",
+                                font: { size: 12, weight: "600" }
+                            },
+                            ticks: {
+                                backdropColor: "transparent",
+                                color: "rgba(255,255,255,0.52)",
+                                stepSize: 20,
+                                showLabelBackdrop: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadTeams() {
+            generateButton.disabled = true;
+            generationLoader.hidden = false;
+            generatorStatus.textContent = "Simulating team collaboration...";
+            teamGrid.innerHTML = "";
+
+            try {
+                renderTeamMap([], true);
+                const selectedProject = projectNameInput.value.trim();
+
+                if (!selectedProject) {
+                    generatorStatus.textContent = "No candidate projects available.";
+                    return;
+                }
+
+                const response = await fetch("/recruiter/generator.html", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        project_name: selectedProject,
+                        role: "All roles",
+                        team_size: 6
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Team generation failed.");
+                }
+
+                const teams = data.teams || [];
+                const teamMap = data.team_map || [];
+
+                generatedTeams = teams;
+
+                renderTeamMap(teamMap, true);
+                teams.forEach(renderTeam);
+                generatorStatus.textContent = teamMap.length
+                    ? "Generated " + teamMap.length + " teams. Select teams in Feature map to compare."
+                    : "No teams were generated.";
+            } catch (error) {
+                generatorStatus.textContent = error.message;
+            } finally {
+                generationLoader.hidden = true;
+                generateButton.disabled = false;
+            }
+        }
+
+        async function saveTeams() {
+
+        if (!generatedTeams.length) {
+            alert("Generate teams first.");
+            return;
+        }
+
+        try {
+
+            const response = await fetch("/api/save-teams", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    teams: generatedTeams
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Save failed");
+            }
+
+            window.location.href = "/recruiter/dashboard.html";
+
+        } catch (error) {
+
+            alert(error.message);
+        }
+    }
+    </script>
+
+</body>
+</html>

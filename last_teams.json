@@ -1,0 +1,350 @@
+[
+  {
+    "project_name": "Invoice Flow",
+    "generation_id": "invoice-flow-20260609T202901-pl-47bdc42a",
+    "generation_created_at": "2026-06-09T20:29:01+02:00",
+    "performance_score": 76.14,
+    "collaboration_score": 0.71,
+    "communication_score": 0.714,
+    "delivery_score": 0.79,
+    "risk_score": 0.39,
+    "team_vector": {
+      "performance_score": 76.14,
+      "collaboration_score": 0.71,
+      "communication_score": 0.714,
+      "delivery_score": 0.79,
+      "risk_score": 0.39
+    },
+    "rank_position": 1,
+    "simulation_runs": [
+      {
+        "run_number": 1,
+        "performance_score": 76.5,
+        "collaboration_score": 0.7,
+        "communication_score": 0.75,
+        "delivery_score": 0.8,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated good collaboration and adaptability across various benchmarks, particularly excelling in stable project conditions. However, challenges arose under pressure and with changing requirements, highlighting the need for improved communication strategies. Mitigating risks related to conflict and communication breakdowns will be crucial for future success.",
+        "confidence_score": 0.8,
+        "uncertainty_reason": "The prediction is limited by the variability of team dynamics under different stress levels and changing project conditions."
+      },
+      {
+        "run_number": 2,
+        "performance_score": 75.2,
+        "collaboration_score": 0.7,
+        "communication_score": 0.75,
+        "delivery_score": 0.8,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated good collaboration and adaptability under pressure, particularly in stable and iterative project scenarios. However, the high-stress environment revealed vulnerabilities in communication and decision-making, especially when faced with changing requirements. Effective leadership and clear prioritization were key mitigations against these risks.",
+        "confidence_score": 0.8,
+        "uncertainty_reason": "The prediction is limited by the variability in team dynamics under different stress levels and the subjective nature of interpersonal interactions."
+      },
+      {
+        "run_number": 3,
+        "performance_score": 72.5,
+        "collaboration_score": 0.7,
+        "communication_score": 0.6,
+        "delivery_score": 0.75,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated good collaboration and delivery discipline, particularly in stable project conditions. However, challenges arose in high-pressure scenarios and during asynchronous communication, leading to some risks in alignment and decision-making. Strengthening real-time communication practices could enhance overall performance.",
+        "confidence_score": 0.75,
+        "uncertainty_reason": "The simulation relies on subjective interpretations of team dynamics and external pressures that may vary in real scenarios."
+      },
+      {
+        "run_number": 4,
+        "performance_score": 78,
+        "collaboration_score": 0.7,
+        "communication_score": 0.75,
+        "delivery_score": 0.8,
+        "risk_score": 0.4,
+        "summary": "The team demonstrated good adaptability and collaboration in the face of rapidly changing requirements, with Anna and Julia playing key roles in maintaining focus. However, the constant shifts led to some communication gaps and stress, particularly affecting the QA process. To mitigate risks, the team should establish clearer prioritization and documentation practices.",
+        "confidence_score": 0.8,
+        "uncertainty_reason": "The prediction is limited by the variability of team dynamics under pressure and the subjective nature of requirement changes."
+      },
+      {
+        "run_number": 5,
+        "performance_score": 78.5,
+        "collaboration_score": 0.75,
+        "communication_score": 0.72,
+        "delivery_score": 0.8,
+        "risk_score": 0.35,
+        "summary": "Overall, the team demonstrated strong collaboration and effective communication, particularly in stable and quality-focused scenarios. However, they faced challenges under pressure and with changing requirements, which highlighted the need for better conflict resolution strategies. Continuous improvement practices were a key strength, but stress management remains a critical area for development.",
+        "confidence_score": 0.78,
+        "uncertainty_reason": "The team's performance may vary significantly under different stress levels and changing dynamics, affecting their adaptability."
+      }
+    ],
+    "summary": "Average of 5 simulation runs. Overall, the team demonstrated good collaboration and adaptability across various benchmarks, particularly excelling in stable project conditions. However, challenges arose under pressure and with changing requirements, highlighting the need for improved communication strategies. Mitigating risks related to conflict and communication breakdowns will be crucial for future success. Overall, the team demonstrated good collaboration and adaptability under pressure, particularly in stable and iterative project scenarios. However, the high-stress environment revealed vulnerabilities in communication and decision-making, especially when faced with changing requirements. Effective leadership and clear prioritization were key mitigations against these risks. Overall, the team demonstrated good collaboration and delivery discipline, particularly in stable project conditions. However, challenges arose in high-pressure scenarios and during asynchronous communication, leading to some risks in alignment and decision-making. Strengthening real-time communication practices could enhance overall performance. The team demonstrated good adaptability and collaboration in the face of rapidly changing requirements, with Anna and Julia playing key roles in maintaining focus. However, the constant shifts led to some communication gaps and stress, particularly affecting the QA process. To mitigate risks, the team should establish clearer prioritization and documentation practices. Overall, the team demonstrated strong collaboration and effective communication, particularly in stable and quality-focused scenarios. However, they faced challenges under pressure and with changing requirements, which highlighted the need for better conflict resolution strategies. Continuous improvement practices were a key strength, but stress management remains a critical area for development.",
+    "confidence_score": 0.786,
+    "uncertainty_reason": "The prediction is limited by the variability of team dynamics under different stress levels and changing project conditions. | The prediction is limited by the variability in team dynamics under different stress levels and the subjective nature of interpersonal interactions. | The simulation relies on subjective interpretations of team dynamics and external pressures that may vary in real scenarios. | The prediction is limited by the variability of team dynamics under pressure and the subjective nature of requirement changes. | The team's performance may vary significantly under different stress levels and changing dynamics, affecting their adaptability.",
+    "team_members": [
+      {
+        "id": 1,
+        "name": "Anna Kowalska",
+        "role": "Project Manager",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 3,
+        "name": "Julia Wisniewska",
+        "role": "Product Owner",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 5,
+        "name": "Karolina Wojcik",
+        "role": "Backend Developer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 7,
+        "name": "Natalia Lewandowska",
+        "role": "Frontend Developer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 10,
+        "name": "Michal Mazur",
+        "role": "QA Engineer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 11,
+        "name": "Ewa Grabowska",
+        "role": "DevOps Engineer",
+        "project_name": "Invoice Flow"
+      }
+    ]
+  },
+  {
+    "project_name": "Invoice Flow",
+    "generation_id": "invoice-flow-20260609T202901-pl-47bdc42a",
+    "generation_created_at": "2026-06-09T20:29:01+02:00",
+    "performance_score": 75.9,
+    "collaboration_score": 0.72,
+    "communication_score": 0.734,
+    "delivery_score": 0.76,
+    "risk_score": 0.4,
+    "team_vector": {
+      "performance_score": 75.9,
+      "collaboration_score": 0.72,
+      "communication_score": 0.734,
+      "delivery_score": 0.76,
+      "risk_score": 0.4
+    },
+    "rank_position": 2,
+    "simulation_runs": [
+      {
+        "run_number": 1,
+        "performance_score": 78.5,
+        "collaboration_score": 0.75,
+        "communication_score": 0.72,
+        "delivery_score": 0.8,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated solid collaboration and delivery discipline, particularly in stable conditions. However, they faced challenges with communication and adaptability under pressure, which could impact performance in more dynamic scenarios. Proactive management of conflicts and clear communication will be essential for future success.",
+        "confidence_score": 0.78,
+        "uncertainty_reason": "The prediction is limited by the variability of team dynamics under different stress levels and the potential for unobserved interpersonal conflicts."
+      },
+      {
+        "run_number": 2,
+        "performance_score": 72.5,
+        "collaboration_score": 0.7,
+        "communication_score": 0.75,
+        "delivery_score": 0.8,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated good adaptability and effective communication, particularly in stable and iterative project scenarios. However, stress and changing requirements posed challenges, particularly for the DevOps Engineer. Maintaining clear communication and prioritization will be crucial for future benchmarks.",
+        "confidence_score": 0.8,
+        "uncertainty_reason": "The prediction is limited by the variability in team dynamics under pressure and the subjective nature of personality impacts on behavior."
+      },
+      {
+        "run_number": 3,
+        "performance_score": 75,
+        "collaboration_score": 0.7,
+        "communication_score": 0.6,
+        "delivery_score": 0.8,
+        "risk_score": 0.4,
+        "summary": "The team demonstrated solid collaboration and delivery discipline, particularly in stable conditions. However, challenges arose in high-pressure scenarios and with changing requirements, primarily due to asynchronous communication. Maintaining clear documentation and leveraging individual strengths were key mitigations.",
+        "confidence_score": 0.75,
+        "uncertainty_reason": "The team's performance may vary significantly under different stress levels and communication conditions."
+      },
+      {
+        "run_number": 4,
+        "performance_score": 75,
+        "collaboration_score": 0.7,
+        "communication_score": 0.8,
+        "delivery_score": 0.7,
+        "risk_score": 0.4,
+        "summary": "The team demonstrated good adaptability and communication under pressure, effectively managing changing requirements. However, the constant shifts in priorities created some friction, particularly among developers, which could impact delivery timelines if not managed carefully.",
+        "confidence_score": 0.8,
+        "uncertainty_reason": "The unpredictability of client demands introduces variability in team dynamics and performance."
+      },
+      {
+        "run_number": 5,
+        "performance_score": 78.5,
+        "collaboration_score": 0.75,
+        "communication_score": 0.8,
+        "delivery_score": 0.7,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated strong collaboration and communication, particularly in stable conditions. However, stress and anxiety during high-pressure scenarios highlighted areas for improvement in decision-making speed and conflict resolution. Continuous quality focus was a significant strength, but managing changing requirements remains a challenge.",
+        "confidence_score": 0.85,
+        "uncertainty_reason": "The prediction is limited by the variability of team dynamics under different stress levels and the subjective nature of interpersonal interactions."
+      }
+    ],
+    "summary": "Average of 5 simulation runs. Overall, the team demonstrated solid collaboration and delivery discipline, particularly in stable conditions. However, they faced challenges with communication and adaptability under pressure, which could impact performance in more dynamic scenarios. Proactive management of conflicts and clear communication will be essential for future success. Overall, the team demonstrated good adaptability and effective communication, particularly in stable and iterative project scenarios. However, stress and changing requirements posed challenges, particularly for the DevOps Engineer. Maintaining clear communication and prioritization will be crucial for future benchmarks. The team demonstrated solid collaboration and delivery discipline, particularly in stable conditions. However, challenges arose in high-pressure scenarios and with changing requirements, primarily due to asynchronous communication. Maintaining clear documentation and leveraging individual strengths were key mitigations. The team demonstrated good adaptability and communication under pressure, effectively managing changing requirements. However, the constant shifts in priorities created some friction, particularly among developers, which could impact delivery timelines if not managed carefully. Overall, the team demonstrated strong collaboration and communication, particularly in stable conditions. However, stress and anxiety during high-pressure scenarios highlighted areas for improvement in decision-making speed and conflict resolution. Continuous quality focus was a significant strength, but managing changing requirements remains a challenge.",
+    "confidence_score": 0.796,
+    "uncertainty_reason": "The prediction is limited by the variability of team dynamics under different stress levels and the potential for unobserved interpersonal conflicts. | The prediction is limited by the variability in team dynamics under pressure and the subjective nature of personality impacts on behavior. | The team's performance may vary significantly under different stress levels and communication conditions. | The unpredictability of client demands introduces variability in team dynamics and performance. | The prediction is limited by the variability of team dynamics under different stress levels and the subjective nature of interpersonal interactions.",
+    "team_members": [
+      {
+        "id": 1,
+        "name": "Anna Kowalska",
+        "role": "Project Manager",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 3,
+        "name": "Julia Wisniewska",
+        "role": "Product Owner",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 5,
+        "name": "Karolina Wojcik",
+        "role": "Backend Developer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 8,
+        "name": "Adam Dabrowski",
+        "role": "Frontend Developer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 9,
+        "name": "Oliwia Kaczmarek",
+        "role": "QA Engineer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 12,
+        "name": "Krzysztof Pawlak",
+        "role": "DevOps Engineer",
+        "project_name": "Invoice Flow"
+      }
+    ]
+  },
+  {
+    "project_name": "Invoice Flow",
+    "generation_id": "invoice-flow-20260609T202901-pl-47bdc42a",
+    "generation_created_at": "2026-06-09T20:29:01+02:00",
+    "performance_score": 75.8,
+    "collaboration_score": 0.73,
+    "communication_score": 0.714,
+    "delivery_score": 0.796,
+    "risk_score": 0.4,
+    "team_vector": {
+      "performance_score": 75.8,
+      "collaboration_score": 0.73,
+      "communication_score": 0.714,
+      "delivery_score": 0.796,
+      "risk_score": 0.4
+    },
+    "rank_position": 3,
+    "simulation_runs": [
+      {
+        "run_number": 1,
+        "performance_score": 76.5,
+        "collaboration_score": 0.75,
+        "communication_score": 0.72,
+        "delivery_score": 0.78,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated good collaboration and adaptability, particularly in stable and iterative project scenarios. However, they faced challenges under pressure and with changing requirements, highlighting the need for improved communication and conflict resolution strategies. Focusing on clearer communication and proactive conflict management will be crucial for future success.",
+        "confidence_score": 0.78,
+        "uncertainty_reason": "The prediction is limited by the variability in team dynamics under different stress levels and the potential for unobserved interpersonal conflicts."
+      },
+      {
+        "run_number": 2,
+        "performance_score": 72.5,
+        "collaboration_score": 0.7,
+        "communication_score": 0.75,
+        "delivery_score": 0.8,
+        "risk_score": 0.4,
+        "summary": "Overall, the team showed good collaboration and adaptability under pressure, particularly in stable and iterative scenarios. However, stress and communication challenges emerged during high-pressure situations, indicating a need for better emotional regulation strategies. Continuous improvement in communication practices will be crucial for future success.",
+        "confidence_score": 0.8,
+        "uncertainty_reason": "The prediction is limited by the variability of team dynamics under extreme pressure and the potential for unobserved interpersonal conflicts."
+      },
+      {
+        "run_number": 3,
+        "performance_score": 72.5,
+        "collaboration_score": 0.7,
+        "communication_score": 0.6,
+        "delivery_score": 0.75,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated good cooperation and adaptability, particularly in stable and iterative project scenarios. However, the asynchronous communication model posed challenges, especially under pressure and during requirement changes. Improving real-time communication could enhance their performance significantly.",
+        "confidence_score": 0.75,
+        "uncertainty_reason": "The reliance on asynchronous communication may not fully capture the dynamics of real-time interactions, leading to potential underestimation of risks."
+      },
+      {
+        "run_number": 4,
+        "performance_score": 75,
+        "collaboration_score": 0.7,
+        "communication_score": 0.75,
+        "delivery_score": 0.8,
+        "risk_score": 0.4,
+        "summary": "The team demonstrated strong adaptability and collaboration in the face of changing requirements, effectively communicating and prioritizing tasks to meet client needs. However, the risk of misalignment due to conflicting requests highlighted the need for continuous stakeholder engagement and clarity.",
+        "confidence_score": 0.8,
+        "uncertainty_reason": "The unpredictability of client demands and team dynamics under pressure may lead to varying outcomes in future simulations."
+      },
+      {
+        "run_number": 5,
+        "performance_score": 82.5,
+        "collaboration_score": 0.8,
+        "communication_score": 0.75,
+        "delivery_score": 0.85,
+        "risk_score": 0.4,
+        "summary": "Overall, the team demonstrated strong collaboration and adaptability, particularly in stable and quality-focused scenarios. However, stress under pressure and conflicting priorities posed risks that could impact performance. Continuous communication and support will be essential to mitigate these risks.",
+        "confidence_score": 0.85,
+        "uncertainty_reason": "The team's performance may vary significantly under different stress levels and changing dynamics."
+      }
+    ],
+    "summary": "Average of 5 simulation runs. Overall, the team demonstrated good collaboration and adaptability, particularly in stable and iterative project scenarios. However, they faced challenges under pressure and with changing requirements, highlighting the need for improved communication and conflict resolution strategies. Focusing on clearer communication and proactive conflict management will be crucial for future success. Overall, the team showed good collaboration and adaptability under pressure, particularly in stable and iterative scenarios. However, stress and communication challenges emerged during high-pressure situations, indicating a need for better emotional regulation strategies. Continuous improvement in communication practices will be crucial for future success. Overall, the team demonstrated good cooperation and adaptability, particularly in stable and iterative project scenarios. However, the asynchronous communication model posed challenges, especially under pressure and during requirement changes. Improving real-time communication could enhance their performance significantly. The team demonstrated strong adaptability and collaboration in the face of changing requirements, effectively communicating and prioritizing tasks to meet client needs. However, the risk of misalignment due to conflicting requests highlighted the need for continuous stakeholder engagement and clarity. Overall, the team demonstrated strong collaboration and adaptability, particularly in stable and quality-focused scenarios. However, stress under pressure and conflicting priorities posed risks that could impact performance. Continuous communication and support will be essential to mitigate these risks.",
+    "confidence_score": 0.796,
+    "uncertainty_reason": "The prediction is limited by the variability in team dynamics under different stress levels and the potential for unobserved interpersonal conflicts. | The prediction is limited by the variability of team dynamics under extreme pressure and the potential for unobserved interpersonal conflicts. | The reliance on asynchronous communication may not fully capture the dynamics of real-time interactions, leading to potential underestimation of risks. | The unpredictability of client demands and team dynamics under pressure may lead to varying outcomes in future simulations. | The team's performance may vary significantly under different stress levels and changing dynamics.",
+    "team_members": [
+      {
+        "id": 1,
+        "name": "Anna Kowalska",
+        "role": "Project Manager",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 3,
+        "name": "Julia Wisniewska",
+        "role": "Product Owner",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 5,
+        "name": "Karolina Wojcik",
+        "role": "Backend Developer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 7,
+        "name": "Natalia Lewandowska",
+        "role": "Frontend Developer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 9,
+        "name": "Oliwia Kaczmarek",
+        "role": "QA Engineer",
+        "project_name": "Invoice Flow"
+      },
+      {
+        "id": 12,
+        "name": "Krzysztof Pawlak",
+        "role": "DevOps Engineer",
+        "project_name": "Invoice Flow"
+      }
+    ]
+  }
+]
