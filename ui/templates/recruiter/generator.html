@@ -10,8 +10,28 @@
 </head>
 
 <body>
+    <div class="topbar">
+        <div class="brand">
 
-    <h1>Generator</h1>
+            <img
+                src="{{ url_for('static', path='img/logo_DREAMteam_białe.png') }}"
+                alt="DreamTeam"
+                class="logo">
+
+            <div class="brand-info">
+                <div class="brand-text">AI RECRUITMENT PLATFORM</div>
+                <div class="page-title">Generator</div>
+            </div>
+
+        </div>
+
+        <button
+            class="btn-outline dashboard-button"
+            type="button"
+            onclick="window.location.href='/recruiter/dashboard.html'">
+            Back to Dashboard
+        </button>
+    </div>
 
     <div class="generator-controls">
         <label>
@@ -97,7 +117,7 @@
 
         <div class="actions">
             <button class="btn-outline" onclick="window.location.href='/recruiter/reports.html'">Reports</button>
-            <button class="btn-primary" onclick="window.location.href='/recruiter/dashboard.html'">Save</button>
+            <button class="btn-primary" onclick="saveTeams()">Save</button>
         </div>
 
     </div>
@@ -115,6 +135,7 @@
         let teamMapChart;
         let selectedTeamKeys = new Set();
         let currentTeamMap = [];
+        let generatedTeams = [];
 
         function escapeHtml(value) {
             return String(value || "")
@@ -375,6 +396,7 @@
             generationLoader.hidden = false;
             generatorStatus.textContent = "Simulating team collaboration...";
             teamGrid.innerHTML = "";
+            generatedTeams = [];
 
             try {
                 renderTeamMap([], true);
@@ -406,6 +428,8 @@
                 const teams = data.teams || [];
                 const teamMap = data.team_map || [];
 
+                generatedTeams = teamMap;
+
                 renderTeamMap(teamMap, true);
                 teams.forEach(renderTeam);
                 generatorStatus.textContent = teamMap.length
@@ -418,6 +442,37 @@
                 generateButton.disabled = false;
             }
         }
+
+        async function saveTeams() {
+
+        if (!generatedTeams.length) {
+            alert("Generate teams first.");
+            return;
+        }
+
+        try {
+
+            const response = await fetch("/api/save-teams", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    teams: generatedTeams
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Save failed");
+            }
+
+            window.location.href = "/recruiter/dashboard.html";
+
+        } catch (error) {
+
+            alert(error.message);
+        }
+    }
     </script>
 
 </body>

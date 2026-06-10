@@ -1,157 +1,403 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
+    padding: 0;
+    min-height: 100vh;
     font-family: Inter, Arial, sans-serif;
-    background: radial-gradient(circle at top, #2a2f55, #0f1220);
     color: white;
+    background:
+        radial-gradient(circle at 20% 0%, rgba(108,92,255,.18), transparent 35%),
+        radial-gradient(circle at 80% 10%, rgba(79,172,254,.12), transparent 35%),
+        radial-gradient(circle at top, #2a2f55, #0f1220);
+    overflow-x: hidden;
 }
 
 .bg {
     position: fixed;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     z-index: -1;
 }
 
 .container {
-    width: 1100px;
-    margin: 50px auto;
+    max-width: 1400px;
+    width: 94%;
+    margin: 32px auto;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.logo {
+    width: 170px;
+    height: auto;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    color: #aab0d6;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.brand-text span {
+    color: #aab0d6;
+    font-size: 12px;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+.brand-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+    color: white;
+    font: inherit;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.logout-button:hover {
+    background: rgba(255,255,255,.07);
+    border-color: rgba(255,255,255,.18);
+}
+
+.profile-avatar {
+    width: 36px;
+    height: 36px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+}
+
+.arrow {
+    font-size: 12px;
+    opacity: .7;
 }
 
 .header {
-    text-align: center;
     margin-bottom: 30px;
 }
 
 .header h1 {
-    font-size: 42px;
-    margin: 0;
-}
+    font-size: 48px;
+    font-weight: 800;
 
-.header p {
-    color: #aaa;
+    letter-spacing: -1px;
 }
 
 .project-bar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 25px;
+    gap: 12px;
+    margin-bottom: 30px;
 }
 
 .project-bar input {
     flex: 1;
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.05);
+    padding: 16px 18px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
     color: white;
     outline: none;
+    transition: .25s;
+}
+
+.project-bar input::placeholder {
+    color: #9ea4c7;
+}
+
+.project-bar input:focus {
+    border-color: rgba(108,92,255,.6);
+    box-shadow:
+        0 0 0 4px rgba(108,92,255,.12);
 }
 
 .project-bar button {
-    padding: 14px 20px;
-    border-radius: 12px;
+    padding: 16px 22px;
     border: none;
-    background: #6c5cff;
+    border-radius: 14px;
+    background: linear-gradient(
+        135deg,
+        #6c5cff,
+        #877bff
+    );
     color: white;
+    font-weight: 600;
     cursor: pointer;
+    transition: .25s;
 }
+
+.project-bar button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 12px 30px rgba(108,92,255,.35);
+}
+
 
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 25px;
+    gap: 28px;
 }
 
 .card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 18px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 22px;
+    padding: 24px;
+    backdrop-filter: blur(16px);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 10px 40px rgba(0,0,0,.25);
+    transition: .25s;
+}
+
+.card:hover {
+    border-color: rgba(108,92,255,.25);
+    transform: translateY(-2px);
 }
 
 .card-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
 .card-title h2 {
-    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
 }
 
 select {
-    background: rgba(255,255,255,0.05);
-    color: rgb(255, 255, 255);
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 10px;
-    border-radius: 10px;
-}
-
-.skeleton-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 20px;
-}
-
-.sk {
-    background: rgba(255,255,255,0.08);
+    padding: 10px 14px;
     border-radius: 12px;
-    animation: pulse 1.5s infinite;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.05);
+    color: white;
+    outline: none;
+    color-scheme: dark;
 }
 
-.sk {
-    height: 18px;
+select option {
+    background: #1b1f34;
 }
 
-.sk.big {
-    height: 140px;
-}
-
-.sk.small {
-    height: 70px;
-}
-
-@keyframes pulse {
-    0% { opacity: 0.4; }
-    50% { opacity: 0.8; }
-    100% { opacity: 0.4; }
-}
-
-.team-area {
-    margin-top: 20px;
+#candidateList {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.team-row {
+.candidate-card {
     display: flex;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08);
+    transition: .25s;
+}
+
+.candidate-card:hover {
+    transform: translateX(4px);
+    border-color: rgba(108,92,255,.25);
+    background: rgba(255,255,255,.05);
+}
+
+.candidate-name {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.candidate-role {
+    margin-top: 4px;
+    color: #9ea4c7;
+    font-size: 14px;
+}
+
+.candidate-right {
+    text-align: center;
+}
+
+.candidate-score {
+    font-size: 28px;
+    font-weight: 800;
+    color: #8d80ff;
+}
+
+.score-label {
+    font-size: 12px;
+    color: #9ea4c7;
+}
+
+#teamsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.team-card {
+    padding: 22px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    transition: .25s;
+}
+
+.team-card:hover {
+    border-color: rgba(108,92,255,.35);
+    transform: translateY(-2px);
+}
+
+.team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.team-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.team-score {
+    min-width: 70px;
+    text-align: center;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgba(108,92,255,.15);
+    color: #a79dff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.team-members {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.member-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.06);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.member-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+}
+
+.member-role {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #aab0d6;
 }
 
 .buttons {
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
+    margin-top: 22px;
+    gap: 12px;
 }
 
-button {
+.buttons button {
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
     cursor: pointer;
-    border-radius: 12px;
-    padding: 12px 16px;
-    border: none;
+    transition: .25s;
 }
 
 .primary {
-    background: #6c5cff;
+    background: linear-gradient(
+        135deg,
+        #6c5cff,
+        #877bff
+    );
+    border: none;
     color: white;
+    font-weight: 600;
+}
+
+.primary:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 12px 30px rgba(108,92,255,.35);
 }
 
 .ghost {
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.2);
     color: white;
+    border: 1px solid rgba(255,255,255,.15);
+}
+
+.ghost:hover {
+    background: rgba(255,255,255,.05);
+}
+
+@media (max-width: 1000px) {
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .project-bar {
+        flex-direction: column;
+    }
+
+    .buttons {
+        flex-direction: column;
+    }
 }

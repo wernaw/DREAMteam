@@ -50,13 +50,30 @@ body::after {
     padding: 15px 20px;
     background: rgba(190, 190, 190, 0.04);
     border-bottom: 1px solid rgba(255,255,255,0.08);
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     color :azure;
 }
 
 .chat-header h1 {
     margin: 0;
     font-size: 16px;
+}
+
+.logout-button {
+    padding: 8px 14px;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.logout-button:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.28);
 }
 
 
@@ -88,6 +105,7 @@ body::after {
     align-self: flex-start;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.08);
+    color: white;
 }
 
 .result {

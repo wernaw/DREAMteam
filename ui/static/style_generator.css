@@ -7,6 +7,60 @@ body {
     min-height: 100vh;
 }
 
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 1100px;
+    margin: 0 auto 40px;
+}
+
+.dashboard-button {
+    margin-top: 25px;
+    width: 170px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 25px;
+}
+
+.logo {
+    width: 170px;
+    height: auto;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    color: #aab0d6;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.brand-text span {
+    color: #aab0d6;
+    font-size: 12px;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+.brand-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 6px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+}
+
 .team-container {
     width: 1100px;
     margin: 40px auto;
@@ -610,7 +664,15 @@ button {
     margin-top: 25px;
 }
 
+.actions .btn-primary {
+    width: 170px;
+}
+
 @media (max-width: 900px) {
+    .topbar {
+        width: 95%;
+    }
+
     .team-grid {
         grid-template-columns: 1fr;
     }
@@ -626,6 +688,16 @@ button {
 }
 
 @media (max-width: 700px) {
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .dashboard-button {
+        margin: 0;
+    }
+
     .section-header {
         align-items: flex-start;
         flex-direction: column;

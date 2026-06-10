@@ -12,9 +12,21 @@
 
 <div class="container">
 
-    <h1>Reports</h1>
+    <div class="brand">
 
-    <h2>Team Personality Distribution</h2>
+            <img
+                src="{{ url_for('static', path='img/logo_DREAMteam_białe.png') }}"
+                alt="DreamTeam"
+                class="logo">
+
+            <div class="brand-info">
+                <div class="brand-text">AI RECRUITMENT PLATFORM</div>
+                <div class="page-title">Reports</div>
+            </div>
+
+    </div> 
+
+    <h1>Team Personality Distribution</h1>
 
     <table>
         <tbody id="teamSummary"></tbody>
@@ -37,110 +49,8 @@
         <tbody id="reports"></tbody>
     </table>
 
-    <div class="panel">
-
-        <select id="teamSelect">
-            <option value="0">⭐ Best Match</option>
-            <option value="1">Second Team</option>
-            <option value="2">Third Team</option>
-        </select>
-
-        <div class="row">
-            <div>
-                <div class="name">Anna Kowalska</div>
-                <div class="role">Project Manager</div>
-            </div>
-
-            <div class="row-role">Project Manager</div>
-
-            <div class="row-answers">
-                <details>
-                    <summary>Show answers</summary>
-                    <div class="answers-box">...</div>
-                </details>
-            </div>
-        </div>
-
-        <div class="row">
-            <div>
-                <div class="name">Julita Wiśniewska</div>
-                <div class="role">Product Owner</div>
-            </div>
-
-            <div class="row-role">Product Owner</div>
-
-            <div class="row-answers">
-                <details>
-                    <summary>Show answers</summary>
-                    <div class="answers-box">...</div>
-                </details>
-            </div>
-        </div>
-
-        <div class="row">
-            <div>
-                <div class="name">Karolina Wójcik</div>
-                <div class="role">Backend Developer</div>
-            </div>
-
-            <div class="row-role">Backend Developer</div>
-
-            <div class="row-answers">
-                <details>
-                    <summary>Show answers</summary>
-                    <div class="answers-box">...</div>
-                </details>
-            </div>
-        </div>
-
-        <div class="row">
-            <div>
-                <div class="name">Natalia Lewandowska</div>
-                <div class="role">Frontend Developer</div>
-            </div>
-
-            <div class="row-role">Frontend Developer</div>
-
-            <div class="row-answers">
-                <details>
-                    <summary>Show answers</summary>
-                    <div class="answers-box">...</div>
-                </details>
-            </div>
-        </div>
-
-        <div class="row">
-            <div>
-                <div class="name">Michał Mazur</div>
-                <div class="role">QA Engineer</div>
-            </div>
-
-            <div class="row-role">QA Engineer</div>
-
-            <div class="row-answers">
-                <details>
-                    <summary>Show answers</summary>
-                    <div class="answers-box">...</div>
-                </details>
-            </div>
-        </div>
-
-        <div class="row">
-            <div>
-                <div class="name">Ewa Grabowska</div>
-                <div class="role">DevOps Engineer</div>
-            </div>
-
-            <div class="row-role">DevOps Engineer</div>
-
-            <div class="row-answers">
-                <details>
-                    <summary>Show answers</summary>
-                    <div class="answers-box">...</div>
-                </details>
-            </div>
-        </div>
-
+    <div class="table-footer">
+            <button class="btn-primary" onclick="window.location.href='/recruiter/dashboard.html'">Back to Dashboard</button>
     </div>
 
 </div>
@@ -196,8 +106,6 @@ async function loadReports() {
 
 loadReports();
 </script>
-    <div class="table-footer">
-            <button class="btn-outline" onclick="window.location.href='/recruiter/dashboard.html'">Back to Dashboard</button>
-    </div>
+    
 </body>
 </html>

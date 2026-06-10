@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <title>Dashboard</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', path='style_dashboard.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', path='style_dashboard.css') }}">
 </head>
 
 <body>
@@ -14,15 +15,33 @@
 
 <div class="container">
 
+    <div class="topbar">
 
-    <div class="header">
-        <h1>DREAMteam</h1>
-        <p>AI Recruitment Dashboard</p>
+        <div class="brand">
+
+            <img
+                src="{{ url_for('static', path='img/logo_DREAMteam_białe.png') }}"
+                alt="DreamTeam"
+                class="logo">
+
+            <div class="brand-info">
+                <div class="brand-text">AI RECRUITMENT PLATFORM</div>
+                <div class="page-title">Dashboard</div>
+            </div>
+
+        </div>  
+
+        <button class="logout-button" type="button" onclick="logout()">
+            Logout
+        </button>
+
     </div>
 
     <div class="project-bar">
 
-        <input id="projectInput" placeholder="Dodaj nowy projekt...">
+        <input
+            id="projectInput"
+            placeholder="Add new project...">
 
         <button onclick="addProject()">
             + Add
@@ -35,56 +54,65 @@
         <div class="card">
 
             <div class="card-title">
+
                 <h2>Candidates</h2>
 
-                <select>
-                    <option>Project Manager</option>
-                    <option>Product Owner</option>
-                    <option>Frontend Developer</option>
-                    <option>Backend Developer</option>
-                    <option>QA Engineer</option>
-                    <option>DevObs Engineer</option>
+                <select
+                    id="roleFilter"
+                    onchange="loadCandidates()">
+
+                    <option value="">All</option>
+                    <option value="Project Manager">Project Manager</option>
+                    <option value="Product Owner">Product Owner</option>
+                    <option value="Frontend Developer">Frontend Developer</option>
+                    <option value="Backend Developer">Backend Developer</option>
+                    <option value="QA Engineer">QA Engineer</option>
+                    <option value="DevOps Engineer">DevOps Engineer</option>
+
                 </select>
+
             </div>
 
-            <div class="skeleton-list">
-                <div class="sk"></div>
-                <div class="sk"></div>
-                <div class="sk"></div>
-                <div class="sk"></div>
-                <div class="sk"></div>
+            <div id="candidateList">
+                Loading candidates...
             </div>
 
         </div>
 
-
         <div class="card">
 
             <div class="card-title">
+
                 <h2>Teams</h2>
 
-                <select>
-                    <option>Last</option>
-                    <option>Top 3</option>
+                <select
+                    id="teamLimit"
+                    onchange="loadTeams()">
+
+                    <option value="1">Last</option>
+                    <option value="3">Top 3</option>
+
                 </select>
+
             </div>
 
-            <div class="team-area">
-
-                <div class="sk big"></div>
-
-                <div class="team-row">
-                    <div class="sk small"></div>
-                    <div class="sk small"></div>
-                </div>
-
+            <div id="teamsContainer">
+                Loading teams...
             </div>
 
             <div class="buttons">
 
-                <button class="ghost" onclick="window.location.href='/recruiter/reports.html'">Reports</button>
+                <button
+                    class="ghost"
+                    onclick="window.location.href='/recruiter/reports.html'">
 
-                <button class="primary" onclick="window.location.href='/recruiter/generator.html'">⭐ Generate team</button>
+                    Reports
+
+                </button>
+
+                <button
+                    class="primary"
+                    onclick="window.location.href='/recruiter/generator.html'">⭐ Generate Team</button>
 
             </div>
 
@@ -95,13 +123,192 @@
 </div>
 
 <script>
-function addProject() {
-    const value = document.getElementById("projectInput").value;
-    if (!value) return;
 
-    alert("Dodano projekt: " + value);
-    document.getElementById("projectInput").value = "";
+async function logout() {
+
+    try {
+
+        const response = await fetch("/logout", {
+            method: "POST"
+        });
+
+        if (!response.ok) {
+            throw new Error("Logout failed.");
+        }
+
+        window.location.href = "/";
+
+    } catch (error) {
+
+        console.error(error);
+        alert(error.message);
+    }
 }
+
+async function loadCandidates() {
+
+    try {
+
+        const role =
+            document.getElementById("roleFilter").value;
+
+        const res =
+            await fetch("/api/candidates");
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+
+        const candidates =
+            await res.json();
+
+        let html = "";
+
+        const filtered =
+            role
+                ? candidates.filter(c => c.role === role)
+                : candidates;
+
+        filtered.forEach(c => {
+
+            const score = Math.round(
+                (
+                    (c.personality?.openness || 0) +
+                    (c.personality?.conscientiousness || 0) +
+                    (c.personality?.extraversion || 0) +
+                    (c.personality?.agreeableness || 0)
+                ) * 25
+            );
+
+            html += `
+            <div class="candidate-card">
+                <div class="candidate-left">
+                    <div class="candidate-name">${c.name}</div>
+                    <div class="candidate-role">${c.role}</div>
+                </div>
+
+                <div class="candidate-right">
+                    <div class="candidate-score">${score}%</div>
+                    <div class="score-label">Match</div>
+                </div>
+            </div>
+            `;
+        });
+
+        document.getElementById("candidateList").innerHTML =
+            html || "No candidates found.";
+
+    } catch (err) {
+
+        console.error(err);
+
+        document.getElementById("candidateList").innerHTML =
+            "Failed to load candidates.";
+    }
+}
+
+
+
+async function loadTeams() {
+
+    try {
+
+        const limit =
+            document.getElementById("teamLimit").value;
+
+        const res =
+            await fetch(`/api/teams?limit=${limit}`);
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+
+        const teams =
+            await res.json();
+
+        console.log("Teams:", teams);
+
+        let html = "";
+
+        teams.forEach(team => {
+
+            html += `
+            <div class="team-card">
+
+                <div class="team-header">
+
+                    <div class="team-title">
+                        Team #${team.rank_position}
+                    </div>
+
+                    <div class="team-score">
+                        ${Math.round(team.performance_score)}
+                    </div>
+
+                </div>
+
+                <div class="team-members">
+
+                ${team.team_members.map(member => `
+                    <div class="member-card">
+
+                        <div class="member-name">
+                            ${member.name}
+                        </div>
+
+                        <div class="member-role">
+                            ${member.role}
+                        </div>
+
+                    </div>
+                `).join("")}
+
+            </div>
+
+            </div>
+            `;
+        });
+
+        document.getElementById("teamsContainer").innerHTML =
+            html || "No teams found.";
+
+    } catch (err) {
+
+        console.error(err);
+
+        document.getElementById("teamsContainer").innerHTML =
+            "Failed to load teams.";
+    }
+}
+
+
+
+function addProject() {
+
+    const input =
+        document.getElementById("projectInput");
+
+    const value =
+        input.value.trim();
+
+    if (!value) {
+        return;
+    }
+
+    console.log("New project:", value);
+
+    input.value = "";
+}
+
+
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    loadCandidates();
+    loadTeams();
+
+});
+
 </script>
 
 </body>

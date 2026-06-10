@@ -14,6 +14,9 @@
 
     <div class="chat-header">
         <h1>Interview</h1>
+        <button class="logout-button" type="button" onclick="logout()">
+            Logout
+        </button>
     </div>
 
 
@@ -39,6 +42,22 @@ let history = [];
 const chatBox = document.getElementById("chat");
 const input = document.getElementById("message");
 const projectSelect = document.getElementById("projectSelect");
+
+async function logout() {
+    try {
+        const response = await fetch("/logout", {
+            method: "POST"
+        });
+
+        if (!response.ok) {
+            throw new Error("Logout failed.");
+        }
+
+        window.location.href = "/";
+    } catch (error) {
+        appendMessage("bot", error.message);
+    }
+}
 
 function appendMessage(type, text) {
     if (!text) return;
