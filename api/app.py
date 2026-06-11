@@ -408,7 +408,8 @@ def get_candidates(_user=Depends(require_role("recruiter"))):
             openness,
             conscientiousness,
             extraversion,
-            agreeableness
+            agreeableness,
+            neuroticism
         FROM candidate_personality_scores
     """)
 
@@ -427,6 +428,7 @@ def get_candidates(_user=Depends(require_role("recruiter"))):
                     "conscientiousness": row[4],
                     "extraversion": row[5],
                     "agreeableness": row[6],
+                    "neuroticism": row[7],
                 },
             }
         )

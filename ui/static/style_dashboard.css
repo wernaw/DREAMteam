@@ -227,6 +227,7 @@ select option {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     padding: 18px;
     border-radius: 16px;
     background: rgba(255,255,255,.03);
@@ -251,19 +252,36 @@ select option {
     font-size: 14px;
 }
 
-.candidate-right {
-    text-align: center;
+.candidate-left {
+    flex: 0 0 140px;
 }
 
-.candidate-score {
-    font-size: 28px;
-    font-weight: 800;
-    color: #8d80ff;
+.candidate-traits {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: center;
+    flex: 1;
+    gap: 5px;
 }
 
-.score-label {
-    font-size: 12px;
-    color: #9ea4c7;
+.candidate-traits span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 0;
+    padding: 7px 6px;
+    border: 1px solid rgba(108,92,255,.18);
+    border-radius: 999px;
+    background: rgba(108,92,255,.17);
+    color: #a79dff;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.candidate-traits b {
+    color: white;
 }
 
 #teamsContainer {
@@ -399,5 +417,22 @@ select option {
 
     .buttons {
         flex-direction: column;
+    }
+}
+
+@media (max-width: 700px) {
+    .candidate-card {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .candidate-left {
+        flex-basis: auto;
+    }
+
+    .candidate-traits {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        width: 100%;
     }
 }

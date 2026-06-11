@@ -170,15 +170,9 @@ async function loadCandidates() {
                 : candidates;
 
         filtered.forEach(c => {
-
-            const score = Math.round(
-                (
-                    (c.personality?.openness || 0) +
-                    (c.personality?.conscientiousness || 0) +
-                    (c.personality?.extraversion || 0) +
-                    (c.personality?.agreeableness || 0)
-                ) * 25
-            );
+            const personality = c.personality || {};
+            const percent = value =>
+                `${Math.round((Number(value) || 0) * 100)}%`;
 
             html += `
             <div class="candidate-card">
@@ -187,9 +181,12 @@ async function loadCandidates() {
                     <div class="candidate-role">${c.role}</div>
                 </div>
 
-                <div class="candidate-right">
-                    <div class="candidate-score">${score}%</div>
-                    <div class="score-label">Match</div>
+                <div class="candidate-traits" aria-label="Big Five personality">
+                    <span><b>O</b> ${percent(personality.openness)}</span>
+                    <span><b>C</b> ${percent(personality.conscientiousness)}</span>
+                    <span><b>E</b> ${percent(personality.extraversion)}</span>
+                    <span><b>A</b> ${percent(personality.agreeableness)}</span>
+                    <span><b>N</b> ${percent(personality.neuroticism)}</span>
                 </div>
             </div>
             `;
